@@ -112,6 +112,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args.mesh)
 
+    output = args.mesh[0].split('.')[0] + '.json'
+
     slice_ = slice_at_min_z(args.mesh[0])
     x,y,r = fit_circle_2d(slice_['x'], slice_['z'])
     fig = plt.figure(figsize=(8, 8))
@@ -119,4 +121,4 @@ if __name__ == '__main__':
     circle(x,y,r)
     ax.plot(slice_['x'],slice_['z'])
     plt.show()
-    print(r)
+    slice_.to_json(output)
