@@ -119,22 +119,20 @@ def normalize_x(data):
 
 
 def plot_slices(data, aspect_ratio = 1):
-    fig, ax = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch
+    fig, ax = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
     ax.set_aspect(aspect = aspect_ratio)
     ax.set_title('Schnitte durch den tiefsten Punkt')
     ax.set_ylabel('Z [mm]')
     ax.set_xlabel('X [mm]')
-    # Geht für Dicts, für Dataframes was einbauen ...
-    if type(data.columns) == 'pandas.core.indexes.bas.Index':
+    if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
         name = data.columns[0]
         ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
                    label=(slice_number + '\n'r'min_z = '+'{:6.2f}'.format(data[(slice_number, 'z')].min())), s=0.5)
-    else:
+    else:   # Mehrere Slices
         for slice_number in data.columns.levels[0]:
             ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
-                       label=(slice_number + '\n'r'min_z = '+'{:6.2f}'.format(data[(slice_number, 'z')].min())), s=0.5)
+                       label=(slice_number + '\n'r'min_z = '+'{:6.2f}'.format(data[(slice_number, 'z')+'mm'].min())), s=0.5)
     ax.legend(markerscale=6, scatterpoints=1, loc='upper center', bbox_to_anchor=(0.5, -0.5),fancybox=True, ncol=3)
-    # weiteres Argument: ncol=?
     ax.grid()
     fig.tight_layout()
     fig.show()
@@ -149,13 +147,14 @@ def read_slices():
     return data
 
 
-def write_slices(data):
-'''
-if __name__ == '__main__':
-    # for slt in dir:
-        # sl = slice_mesh(stl)
-        # normalize_x(sl)
-        # concat
+#def write_slices(data):
 
-    # plot
-'''
+
+if __name__ == '__main__':
+    files = glob.glob('*.stl')
+    meshes = pd.DataFrame()
+    for file in files:
+        mesh = slice_mesh(file)
+        normalize_x(mesh)
+        meshes = pd.concat([meshes, mesh], axis=1)
+    plot_slices(meshes)
