@@ -131,7 +131,7 @@ def plot_slices(data, aspect_ratio = 1):
     else:   # Mehrere Slices
         for slice_number in data.columns.levels[0]:
             ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
-                       label=(slice_number + '\n'r'min_z = '+'{:6.2f}'.format(data[(slice_number, 'z')+'mm'].min())), s=0.5)
+                       label=(slice_number + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(slice_number, 'z')].min())), s=0.5)
     ax.legend(markerscale=6, scatterpoints=1, loc='upper center', bbox_to_anchor=(0.5, -0.5),fancybox=True, ncol=3)
     ax.grid()
     fig.tight_layout()
@@ -152,6 +152,7 @@ def read_slices():
 
 if __name__ == '__main__':
     files = glob.glob('*.stl')
+    print(files)
     meshes = pd.DataFrame()
     for file in files:
         mesh = slice_mesh(file)
