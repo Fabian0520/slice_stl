@@ -1,13 +1,13 @@
 '''
-# slice = mesh.section(plane_origin=mesh.centroid, plane_normal=[0,0,1])
-# slice = mesh.section(plane_origin=([0,0,1]), plane_normal=[0,0,1])
-# slice_2D, to_3D = slice.to_planar()
-# slice_2D.show()
+ slice = mesh.section(plane_origin=mesh.centroid, plane_normal=[0,0,1])
+ slice = mesh.section(plane_origin=([0,0,1]), plane_normal=[0,0,1])
+ slice_2D, to_3D = slice.to_planar()
+ slice_2D.show()
 
-# if we wanted to take a bunch of parallel slices, like for a 3D printer
-# we can do that easily with the section_multiplane method
-# we're going to slice the mesh into evenly spaced chunks along z
-# this takes the (2,3) bounding box and slices it into [minz, maxz]
+ if we wanted to take a bunch of parallel slices, like for a 3D printer
+ we can do that easily with the section_multiplane method
+ we're going to slice the mesh into evenly spaced chunks along z
+ this takes the (2,3) bounding box and slices it into [minz, maxz]
 
 
 def tmp():  # slice multiplane
@@ -29,12 +29,12 @@ def tmp():  # slice multiplane
     combined.show()
 
 
-# DataFrame maskieren:
-#   mask = (condition1) & (condition2) | slice_at_min_z_df['x'] > -40
-# Maske anwenden:
-#   slice_at_min_z_df['x'][mask]
+ DataFrame maskieren:
+   mask = (condition1) & (condition2) | slice_at_min_z_df['x'] > -40
+ Maske anwenden:
+   slice_at_min_z_df['x'][mask]
 
-# ax = fig.add_subplot(1, 1, 1, aspect=1)
+ ax = fig.add_subplot(1, 1, 1, aspect=1)
 
 '''
 
@@ -49,18 +49,20 @@ import argparse
 mesh_file = '/home/fabian/Projekte/Python/vtk/D-68966.stl'
 
 
-def slice_mesh(mesh_file, location=None):
+def slice_mesh(mesh_file, location=None, direction=[0, -1, 0]):
     mesh = trimesh.load_mesh(mesh_file)
     mesh_name = mesh_file.split('.')[0] # Funktoniert mometan nur, wenn kein Pfad angegeben wird.
     poits = pd.DataFrame(mesh.vertices, columns=pd.MultiIndex.from_product([[mesh_name],['x', 'y', 'z']]))
     # minimum der z-Spalte:
     if not location: # Fall für angegebene location einbauen und evtl noch Richtung.
-        location_min_z = poits.iloc[poits[(mesh_name,'z')].idxmin()] # .idxmin liefert Zeile des Minimums in der angegebenen Spalte
+        # Location auf Minimum der Z-Koordinate
+        location = poits.iloc[poits[(mesh_name,'z')].idxmin()] # .idxmin liefert Zeile des Minimums in der angegebenen Spalte
 
-        slice_mesh = mesh.section(plane_origin=[location_min_z[0],
-                                                      location_min_z[1],
-                                                      0], # z-Position = 0, damit der Rand auf 0 Niveau ist
-                                                      plane_normal=[0, -1, 0])
+    slice_mesh = mesh.section(plane_origin=[location[0],
+                                              location[1],
+                                              0], # z-Position = 0, damit der Rand auf 0 Niveau ist
+                                              plane_normal=direction)
+
     # MultiColumns: MeshName und darunter Koordinaten
     columns = pd.MultiIndex.from_product([[mesh_name],['x', 'y', 'z']])
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
