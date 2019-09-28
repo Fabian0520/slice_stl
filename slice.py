@@ -38,37 +38,41 @@ def tmp():  # slice multiplane
 
 '''
 
-import glob, os
+import glob
 import trimesh
 import numpy as np
-from shapely.geometry import LineString
+# from shapely.geometry import LineString
 import pandas as pd
 import matplotlib.pyplot as plt
-import argparse
 
 mesh_file = '/home/fabian/Projekte/Python/vtk/D-68966.stl'
 
 
 def slice_mesh(mesh_file, location=None, direction=[0, -1, 0]):
     mesh = trimesh.load_mesh(mesh_file)
-    mesh_name = mesh_file.split('.')[0] # Funktoniert mometan nur, wenn kein Pfad angegeben wird.
-    poits = pd.DataFrame(mesh.vertices, columns=pd.MultiIndex.from_product([[mesh_name],['x', 'y', 'z']]))
+    # Funktoniert mometan nur, wenn kein Pfad angegeben wird.
+    mesh_name = mesh_file.split('.')[0]
+    poits = pd.DataFrame(mesh.vertices,
+                         columns=pd.MultiIndex.from_product([[mesh_name],
+                                                             ['x', 'y', 'z']]))
     # minimum der z-Spalte:
-    if not location: # Fall für angegebene location einbauen und evtl noch Richtung.
+    if not location:
         # Location auf Minimum der Z-Koordinate
-        location = poits.iloc[poits[(mesh_name,'z')].idxmin()] # .idxmin liefert Zeile des Minimums in der angegebenen Spalte
-
+        # .idxmin liefert Zeile des Minimums in der angegebenen Spalte
+        location = poits.iloc[poits[(mesh_name, 'z')].idxmin()]
+    # z-Position = 0, damit der Rand auf 0 Niveau ist
     slice_mesh = mesh.section(plane_origin=[location[0],
-                                              location[1],
-                                              0], # z-Position = 0, damit der Rand auf 0 Niveau ist
-                                              plane_normal=direction)
+                                            location[1],
+                                            0], plane_normal=direction)
 
     # MultiColumns: MeshName und darunter Koordinaten
-    columns = pd.MultiIndex.from_product([[mesh_name],['x', 'y', 'z']])
+    columns = pd.MultiIndex.from_product([[mesh_name], ['x', 'y', 'z']])
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
     slice_mesh_df = pd.DataFrame(slice_mesh.vertices,
                                  columns=columns).sort_values(by=[(mesh_name, 'x')]).reset_index(drop=True)
     return slice_mesh_df
+
+
 '''
     um als json zu speichern:
         slice_at_min_z_df.do_json(orient='split')
@@ -85,13 +89,13 @@ def fit_circle_2d(x, y, w=[]):
     # Modify A,b for weighted least squares
     if len(w) == len(x):
         W = np.diag(w)
-        A = np.dot(W,A)
-        b = np.dot(W,b)
+        A = np.dot(W, A)
+        b = np.dot(W, b)
 
-             # Solve by method of least squares
-    c = np.linalg.lstsq(A,b,rcond=None)[0]
+    # Solve by method of least squares
+    c = np.linalg.lstsq(A, b, rcond=None)[0]
 
-             # Get circle parameters from solution c
+    # Get circle parameters from solution c
     xc = c[0]/2
     yc = c[1]/2
     r = np.sqrt(c[2] + xc**2 + yc**2)
@@ -120,21 +124,25 @@ def normalize_x(data):
     return data
 
 
-def plot_slices(data, aspect_ratio = 1):
+def plot_slices(data, aspect_ratio=1):
     fig, ax = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
-    ax.set_aspect(aspect = aspect_ratio)
+    ax.set_aspect(aspect=aspect_ratio)
     ax.set_title('Schnitte durch den tiefsten Punkt')
     ax.set_ylabel('Z [mm]')
     ax.set_xlabel('X [mm]')
     if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
         name = data.columns[0]
-        ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
-                   label=(slice_number + '\n'r'min_z = '+'{:6.2f}'.format(data[(slice_number, 'z')].min())), s=0.5)
+        ax.scatter(data[(name, 'x')], data[(name, 'z')],
+                   label=(name + '\n'r'min_z = '+'{:6.2f}'.format(data[(name, 'z')].min())), s=0.5)
     else:   # Mehrere Slices
         for slice_number in data.columns.levels[0]:
             ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
                        label=(slice_number + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(slice_number, 'z')].min())), s=0.5)
-    ax.legend(markerscale=6, scatterpoints=1, loc='upper center', bbox_to_anchor=(0.5, -0.5),fancybox=True, ncol=3)
+    ax.legend(markerscale=6,
+              scatterpoints=1,
+              loc='upper center',
+              bbox_to_anchor=(0.5, -0.5),
+              fancybox=True, ncol=3)
     ax.grid()
     fig.tight_layout()
     fig.show()
@@ -149,7 +157,7 @@ def read_slices():
     return data
 
 
-#def write_slices(data):
+# def write_slices(data):
 
 
 if __name__ == '__main__':
