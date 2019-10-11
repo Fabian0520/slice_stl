@@ -131,13 +131,12 @@ def plot_slices(data, aspect_ratio=1):
     ax.set_ylabel('Z [mm]')
     ax.set_xlabel('X [mm]')
     if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
-        name = data.columns[0]
+        column_names = data.columns[0]
+    else:
+        column_names = data.columns.levels[0]
+    for name in column_names:
         ax.scatter(data[(name, 'x')], data[(name, 'z')],
-                   label=(name + '\n'r'min_z = '+'{:6.2f}'.format(data[(name, 'z')].min())), s=0.5)
-    else:   # Mehrere Slices
-        for slice_number in data.columns.levels[0]:
-            ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
-                       label=(slice_number + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(slice_number, 'z')].min())), s=0.5)
+                   label=(name + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(name, 'z')].min())), s=0.5)
     ax.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
@@ -149,6 +148,18 @@ def plot_slices(data, aspect_ratio=1):
     fig.savefig('output.png', orientation='landscape', papertype='a4', dpi=600)
     return fig, ax
 
+def fit_circle_xz(data):
+    if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
+        column_names = data.columns[0]
+    else:
+        column_names = data.columns.levels[0]
+    for name in column_names:
+        mask = data[(name, 'z')] < (0.0 + 0.5)  # 1 ist der Margin
+        x, z, r = fit_circle_2d(data[(name, 'x')][mask], data[(name, 'z')][mask])
+        abstand_daten_fit = np.abs( np.sqrt((data[(name, 'x')]-x)**2 + (data[(name, 'z')]-z)**2) - r)
+        mask = abstand_daten_fit < 5
+        x, z, r = fit_circle_2d(data[(name, 'x')][mask], data[(name, 'z')][mask])
+    return x, z, r, abstand_daten_fit
 
 def read_slices():
     data = pd.DataFrame()
