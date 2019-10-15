@@ -180,13 +180,12 @@ def plot_slices(data, aspect_ratio=1):
     ax.set_ylabel('Z [mm]')
     ax.set_xlabel('X [mm]')
     if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
-        name = data.columns[0]
+        column_names = data.columns[0]
+    else:
+        column_names = data.columns.levels[0]
+    for name in column_names:
         ax.scatter(data[(name, 'x')], data[(name, 'z')],
                    label=(name + '\n'r'min_z = '+'{:6.2f}'.format(data[(name, 'z')].min())), s=0.5)
-    else:   # Mehrere Slices
-        for slice_number in data.columns.levels[0]:
-            ax.scatter(data[(slice_number, 'x')], data[(slice_number, 'z')],
-                       label=(slice_number + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(slice_number, 'z')].min())), s=0.5)
     ax.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
@@ -212,12 +211,12 @@ def read_slices():
 if __name__ == '__main__':
     files = glob.glob('*.stl')
     print(files)
-    meshes = pd.DataFrame()
+    cross_sections = pd.DataFrame()
     for file in files:
-        mesh = slice_mesh(file)
-        normalize_x(mesh)
-        meshes = pd.concat([meshes, mesh], axis=1)
-    plot_slices(meshes)
+        cs, __, __ = slice_mesh(file)
+        normalize_x(cs)
+        cross_sections = pd.concat([cross_sections, cs], axis=1)
+    plot_slices(cross_sections)
 
 
 '''
