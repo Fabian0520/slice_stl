@@ -70,7 +70,7 @@ def slice_mesh(mesh_file, location=None, direction=[0, -1, 0]):
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
     cross_section_df = pd.DataFrame(cross_section.vertices,
                                  columns=columns).sort_values(by=[(mesh_name, 'x')]).reset_index(drop=True)
-    return cross_section_df, mesh
+    return cross_section_df, mesh, location
 
 # sphere = trimesh.creation.icosphere(subdivisions=7)
 # sphere.apply_translation((x,y,z))
@@ -218,3 +218,15 @@ if __name__ == '__main__':
         normalize_x(mesh)
         meshes = pd.concat([meshes, mesh], axis=1)
     plot_slices(meshes)
+
+
+'''
+1, Mesh einlesen.
+2, Mesh maskieren (z-Koordinate < -0.5)
+3, trimesh.nsphere.fit_nsphere(mesh[mask) fittet eine Kugel an die Punkte (gibt nur Koordinaten aus)
+4, Abstand Kugel - Punkte bestimmen, neue Maske und neuer Fit. (evtl Abweichung von Fit-Fkt einbeziehen)
+5, Kukel erzeugen: sphere = trimesh.creation.icosphere(subdivisions=7, radius=r_fit) (im Ursprung)
+6, Kugel mit Mesh ausrichten: sphere.apply_translation(x,y,z aus fit)
+7, Schnitt durch Mesh und Kugel (durch Mittelpunkt Kugel)
+8, Schnitte in DataFrames umwandeln und plotten
+'''
