@@ -52,26 +52,29 @@ def slice_mesh(mesh_file, location=None, direction=[0, -1, 0]):
     mesh = trimesh.load_mesh(mesh_file)
     # Funktoniert mometan nur, wenn kein Pfad angegeben wird.
     mesh_name = mesh_file.split('.')[0]
-    poits = pd.DataFrame(mesh.vertices,
+    points = pd.DataFrame(mesh.vertices,
                          columns=pd.MultiIndex.from_product([[mesh_name],
                                                              ['x', 'y', 'z']]))
     # minimum der z-Spalte:
     if not location:
         # Location auf Minimum der Z-Koordinate
         # .idxmin liefert Zeile des Minimums in der angegebenen Spalte
-        location = poits.iloc[poits[(mesh_name, 'z')].idxmin()]
+        location = points.iloc[points[(mesh_name, 'z')].idxmin()]
     # z-Position = 0, damit der Rand auf 0 Niveau ist
-    slice_mesh = mesh.section(plane_origin=[location[0],
+    cross_section = mesh.section(plane_origin=[location[0],
                                             location[1],
                                             0], plane_normal=direction)
 
     # MultiColumns: MeshName und darunter Koordinaten
     columns = pd.MultiIndex.from_product([[mesh_name], ['x', 'y', 'z']])
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
-    slice_mesh_df = pd.DataFrame(slice_mesh.vertices,
+    cross_section_df = pd.DataFrame(cross_section.vertices,
                                  columns=columns).sort_values(by=[(mesh_name, 'x')]).reset_index(drop=True)
-    return slice_mesh_df
+    return cross_section_df, mesh, location
 
+# sphere = trimesh.creation.icosphere(subdivisions=7)
+# sphere.apply_translation((x,y,z))
+# trimesh.nsphere.fit_nsphere(points)
 
 '''
     um als json zu speichern:
@@ -101,6 +104,48 @@ def fit_circle_2d(x, y, w=[]):
     r = np.sqrt(c[2] + xc**2 + yc**2)
     return xc, yc, r
 
+def fit_circle_3d(x, y, z, w=[]):
+
+    A = np.array([x, y, z, np.ones(len(x))]).T
+    b = x**2 + y**2 + z**2
+
+    # Modify A,b for weighted least squares
+    if len(w) == len(x):
+        W = np.diag(w)
+        A = np.dot(W, A)
+        b = np.dot(W, b)
+
+    # Solve by method of least squares
+    c = np.linalg.lstsq(A, b, rcond=None)[0]
+
+    # Get circle parameters from solution c
+    xc = c[0]/2
+    yc = c[1]/2
+    zc = c[2]/2
+    r = np.sqrt(c[2] + xc**2 + yc**2 + zc**2)
+    return xc, yc, zc, r
+
+def sphereFit(spX,spY,spZ):
+    #   Assemble the A matrix
+    spX = np.array(spX)
+    spY = np.array(spY)
+    spZ = np.array(spZ)
+    A = np.zeros((len(spX),4))
+    A[:,0] = spX*2
+    A[:,1] = spY*2
+    A[:,2] = spZ*2
+    A[:,3] = 1
+
+    #   Assemble the f matrix
+    f = np.zeros((len(spX),1))
+    f[:,0] = (spX*spX) + (spY*spY) + (spZ*spZ)
+    C, residules, rank, singval = np.linalg.lstsq(A,f, rcond=None)
+
+    #   solve for the radius
+    t = (C[0]*C[0])+(C[1]*C[1])+(C[2]*C[2])+C[3]
+    radius = np.sqrt(t)
+
+    return float(radius), float(C[0]), float(C[1]), float(C[2])
 
 def plot_circle(x, y, radius=0.15):
     from matplotlib.patches import Circle
@@ -114,13 +159,17 @@ def plot_circle(x, y, radius=0.15):
 
 
 def normalize_x(data):
-    for slice_number in data.columns.levels[0]:
-        delta_loc = data[(slice_number, 'z')].idxmin()
-        delta_val = data[(slice_number, 'x')][delta_loc]
+    if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
+        column_names = data.columns[0]
+    else:
+        column_names = data.columns.levels[0]
+    for name in column_names:
+        delta_loc = data[(name, 'z')].idxmin()
+        delta_val = data[(name, 'x')][delta_loc]
         if delta_val > 0:
-            data[(slice_number, 'x')] = data[(slice_number, 'x')] - abs(delta_val)
+            data[(name, 'x')] = data[(name, 'x')] - abs(delta_val)
         else:
-            data[(slice_number, 'x')] = data[(slice_number, 'x')] + abs(delta_val)
+            data[(name, 'x')] = data[(name, 'x')] + abs(delta_val)
     return data
 
 
@@ -174,9 +223,21 @@ def read_slices():
 if __name__ == '__main__':
     files = glob.glob('*.stl')
     print(files)
-    meshes = pd.DataFrame()
+    cross_sections = pd.DataFrame()
     for file in files:
-        mesh = slice_mesh(file)
-        normalize_x(mesh)
-        meshes = pd.concat([meshes, mesh], axis=1)
-    plot_slices(meshes)
+        cs, __, __ = slice_mesh(file)
+        normalize_x(cs)
+        cross_sections = pd.concat([cross_sections, cs], axis=1)
+    plot_slices(cross_sections)
+
+
+'''
+1, Mesh einlesen.
+2, Mesh maskieren (z-Koordinate < -0.5)
+3, trimesh.nsphere.fit_nsphere(mesh[mask) fittet eine Kugel an die Punkte (gibt nur Koordinaten aus)
+4, Abstand Kugel - Punkte bestimmen, neue Maske und neuer Fit. (evtl Abweichung von Fit-Fkt einbeziehen)
+5, Kukel erzeugen: sphere = trimesh.creation.icosphere(subdivisions=7, radius=r_fit) (im Ursprung)
+6, Kugel mit Mesh ausrichten: sphere.apply_translation(x,y,z aus fit)
+7, Schnitt durch Mesh und Kugel (durch Mittelpunkt Kugel)
+8, Schnitte in DataFrames umwandeln und plotten
+'''
