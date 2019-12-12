@@ -227,6 +227,7 @@ if __name__ == '__main__':
     for file in files:
         cs, __, __ = slice_mesh(file)
         normalize_x(cs)
+        # führt alle Schnitte in einem Dataframe zusammen, damit dann alle geplottet werden können
         cross_sections = pd.concat([cross_sections, cs], axis=1)
         cross_sections.to_csv('tmp.csv', index=False)
     plot_slices(cross_sections)
