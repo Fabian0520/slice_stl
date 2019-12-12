@@ -1,0 +1,8 @@
+/venv
+*.stl
+*.obj
+*.json
+*.csv
+*.h5
+*.png
+*.png
