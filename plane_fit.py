@@ -14,9 +14,9 @@ trimesh.points.plane_fit fittet plane an Punkte
 trimesh.geometry.plane_transform(ursprung, vector) liefert Transformationsmatrix um Objekt nach Plane auszurichten
 Objekt.apply_transform transformiert das Objekt
 
-1)  plane_fit
+1)  trimesh.points.plane_fit(mesh.vertices)
 2)  Transformationsmatrix berechnen
 3)  Objekt drehen
-4)  neuer plane_fit mit maskierten Punkten (evlt noch points_plane_distance ansehen)
+4)  neuer plane_fit mit maskierten Punkten (evlt noch trimesh.points.points_plane_distance ansehen)
     -> 2 bis 4
-5)
+5)  trimesh.nsphere.fit_nsphere()
