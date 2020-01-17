@@ -1,22 +1,51 @@
-# coding: utf-8
-import slice as sl
+import trimesh
 import numpy as np
 import pandas as pd
-cs, mesh, __ = sl.slice_mesh('D-69023.stl')
-points = pd.DataFrame(mesh.vertices, columns=['x','y','z'])
-xy1 = np.concatenate([points.iloc[:,:-1], np.ones((points.shape[0],1))],axis=1)
-z= np.array(points.iloc[:,-1]).reshape(-1,1)
-fit = np.matmul(np.matmul(np.linalg.inv(np.matmul(xy1.T, xy1)), xy1.T), z)
-fit
 
-'''
-trimesh.points.plane_fit fittet plane an Punkte
-trimesh.geometry.plane_transform(ursprung, vector) liefert Transformationsmatrix um Objekt nach Plane auszurichten
-Objekt.apply_transform transformiert das Objekt
+#mesh = trimesh.load_mesh('D-69028.stl')
+mesh = trimesh.load_mesh('D-69049.stl')
+mesh_org = mesh.copy()
 
-1)  trimesh.points.plane_fit(mesh.vertices)
-2)  Transformationsmatrix berechnen
-3)  Objekt drehen
-4)  neuer plane_fit mit maskierten Punkten (evlt noch trimesh.points.points_plane_distance ansehen)
-    -> 2 bis 4
-5)  trimesh.nsphere.fit_nsphere()
+plane_fit = trimesh.points.plane_fit(mesh.vertices)
+trans_matrix = trimesh.geometry.plane_transform(plane_fit[0], plane_fit[1])
+mesh.apply_transform(trans_matrix)
+
+mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # convert vertices to pd.DF
+# calculate histogram
+hist_values, hist_bins = np.histogram(mesh_points['z'], bins=500, density=True)
+# Location of maximum value in hist_values
+hist_max_pos = hist_values.argmax()
+import ipdb; ipdb.set_trace()
+# mask points so they are near hist_max
+mask = mesh_points['z'].between(hist_bins[hist_max_pos], hist_bins[hist_max_pos+1])
+# new fit and transform
+plane_fit = trimesh.points.plane_fit(mesh.vertices[mask])
+trans_matrix = trimesh.geometry.plane_transform(plane_fit[0], plane_fit[1])
+mesh.apply_transform(trans_matrix)
+
+# fit sphere to points not in plane
+mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # generate new points, after transform
+mask = mesh_points['z'] < -0.5 # take only points with z<0.5 *** wert noch automatisch eryeugen
+sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(mesh_points[mask])
+
+
+import ipdb; ipdb.set_trace()
+# Maske "Abstand Punkte von Kugel kleiner x" erzeugen und noch mal fitten
+# Distance between points and sphere surface
+mesh_points['dist_sph'] = np.absolute(np.linalg.norm(mesh_points.loc[:,'x':'z']-sph_fit_c, axis=1.0)-sph_fit_r)
+mask = mesh_points['dist_sph'] < 3.0
+sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(mesh_points.loc[:,'x':'z'][mask])
+
+import ipdb; ipdb.set_trace()
+
+# create and aligning sphere and mesh
+sphere = trimesh.creation.icosphere(subdivisions=4, radius=sph_fit_r)   # generate sphere at origin
+trans_matrix_sphere = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,sph_fit_c[2]],[0,0,0,1]])    # align sphere and mesh in z axis
+sphere.apply_transform(trans_matrix_sphere)
+trans_matrix_mesh = np.array([[1,0,0,-sph_fit_c[0]],[0,1,0,-sph_fit_c[1]],[0,0,1,0],[0,0,0,1]]) # align mesh and sphere in xy plane, so that origin is colinear with c_sphere
+mesh.apply_transform(trans_matrix_mesh)
+
+mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # generate new points, after transform
+mesh_points['dist_sph'] = np.absolute(np.linalg.norm(mesh_points.loc[:,'x':'z']-sph_fit_c, axis=1.0)-sph_fit_r)
+
+#test.export('fit.stl')
