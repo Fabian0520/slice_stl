@@ -40,9 +40,6 @@ def prepare_and_fit(mesh_file):
     # import ipdb; ipdb.set_trace()
 
 # create and aligning sphere and mesh
-    sphere = trimesh.creation.icosphere(subdivisions=4, radius=sph_fit_r)   # generate sphere at origin
-    trans_matrix_sphere = np.array([[1,0,0,0],[0,1,0,0],[0,0,1,sph_fit_c[2]],[0,0,0,1]])    # align sphere and mesh in z axis
-    sphere.apply_transform(trans_matrix_sphere)
     trans_matrix_mesh = np.array([[1,0,0,-sph_fit_c[0]],[0,1,0,-sph_fit_c[1]],[0,0,1,0],[0,0,0,1]]) # align mesh and sphere in xy plane, so that origin is colinear with c_sphere
     mesh.apply_transform(trans_matrix_mesh)
     sph_fit_c[:2]=0 # x und y of sphere are 0, since the mesh has been moved
