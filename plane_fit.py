@@ -12,7 +12,7 @@ def prepare_and_fit(mesh_file):
 
     mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # convert vertices to pd.DF
 # calculate histogram
-    hist_values, hist_bins = np.histogram(mesh_points['z'], bins=200, density=True)
+    hist_values, hist_bins = np.histogram(mesh_points['z'], bins=100, density=True)
     # import ipdb; ipdb.set_trace()
 # find sharpest edge in histogram and take this as zero plane
     null_pkt = np.array([np.absolute(hist_values[i-1] - hist_values[i]) for i in range(1,len(hist_values))]).argmax()
@@ -23,6 +23,13 @@ def prepare_and_fit(mesh_file):
     plane_fit = trimesh.points.plane_fit(mesh.vertices[mask])
     trans_matrix = trimesh.geometry.plane_transform(plane_fit[0], plane_fit[1])
     mesh.apply_transform(trans_matrix)
+
+    mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # generate new points, after transform
+    mask = mesh_points['z'].between(-1, 1)
+    plane_fit = trimesh.points.plane_fit(mesh.vertices[mask])
+    trans_matrix = trimesh.geometry.plane_transform(plane_fit[0], plane_fit[1])
+    mesh.apply_transform(trans_matrix)
+
 
 # fit sphere to points not in plane
     mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # generate new points, after transform
