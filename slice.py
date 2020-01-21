@@ -38,6 +38,7 @@ def plot_slices(data, aspect_ratio=1):
     ax.set_aspect(aspect=aspect_ratio)
     ax.set_title('Schnitte durch Zentrum Krater')
     ax.set_ylabel('Z [mm]')
+    ax.set_ylim(-35,15)
     ax.set_xlabel('X [mm]')
     if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
         column_names = data.columns[0]
@@ -46,11 +47,13 @@ def plot_slices(data, aspect_ratio=1):
     for name in column_names:
         #   Einzelplotts
         #----------------------------------------------------------------------------------------
-        fig2, ax2 = plt.subplots(figsize=(11.6929, 8.26772))
+        fig2, ax2 = plt.subplots(figsize=(11.6929, 8.26772)) #480/my_dpi, ..., dpi=my_dpi
         ax2.set_aspect(aspect=aspect_ratio)
         ax2.set_title('Schnitte durch Zentrum Krater')
         ax2.set_ylabel('Z [mm]')
+        ax2.set_ylim(-35,15)
         ax2.set_xlabel('X [mm]')
+        ax2.scatter(data.xs('x',level=1,axis=1), data.xs('z',level=1,axis=1), color='gray', s=0.1, alpha=0.4) # select in a multiindex df in the second level
         ax2.scatter(data[(name, 'x')], data[(name, 'z')],
                    label=(name + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(name, 'z')].min())), s=0.5)
         ax2.add_artist(plot_circle(0,data[(name,'sph_center')][2],data[(name,'sph_radius')][0]))
@@ -67,7 +70,7 @@ def plot_slices(data, aspect_ratio=1):
         #----------------------------------------------------------------------------------------
         ax.scatter(data[(name, 'x')], data[(name, 'z')],
                    label=(name + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(name, 'z')].min())), s=0.5)
-        ax.add_artist(plot_circle(0,data[(name,'sph_center')][2],data[(name,'sph_radius')][0]))
+        # ax.add_artist(plot_circle(0,data[(name,'sph_center')][2],data[(name,'sph_radius')][0]))
     ax.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
@@ -106,7 +109,7 @@ if __name__ == '__main__':
         print('Name: {0}, tiefster Punkt (Kugel): {1:4.2f}mm, Durchmesser Krater: {2:4.2f}mm'.format(mesh_name, sphere_fit_parameters[0][2]-sphere_fit_parameters[1],r_crater*2))
         cs, __ = slice_mesh(mesh, mesh_name, location=[0,0])
         #import ipdb; ipdb.set_trace()
-        cs[mesh_name, 'sph_center'] = pd.Series(sphere_fit_parameters[0])   # sollte ja eigentlich auf 0,0 liegen ...
+        cs[mesh_name, 'sph_center'] = pd.Series(sphere_fit_parameters[0])
         cs[mesh_name, 'sph_radius'] = pd.Series(sphere_fit_parameters[1])
         cs[mesh_name, 'sph_error'] = pd.Series(sphere_fit_parameters[2])
         cs.to_csv(output_name, index=False)
