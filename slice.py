@@ -1,3 +1,4 @@
+#!./venv/bin/python
 import glob
 import trimesh
 import numpy as np
@@ -35,7 +36,7 @@ def slice_mesh(mesh_file, mesh_name, location=None, direction=[0, -1, 0]):
 def plot_slices(data, aspect_ratio=1):
     fig, ax = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
     ax.set_aspect(aspect=aspect_ratio)
-    ax.set_title('Schnitte durch den tiefsten Punkt')
+    ax.set_title('Schnitte durch Zentrum Krater')
     ax.set_ylabel('Z [mm]')
     ax.set_xlabel('X [mm]')
     if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
@@ -43,6 +44,27 @@ def plot_slices(data, aspect_ratio=1):
     else:
         column_names = data.columns.levels[0]
     for name in column_names:
+        #   Einzelplotts
+        #----------------------------------------------------------------------------------------
+        fig2, ax2 = plt.subplots(figsize=(11.6929, 8.26772))
+        ax2.set_aspect(aspect=aspect_ratio)
+        ax2.set_title('Schnitte durch Zentrum Krater')
+        ax2.set_ylabel('Z [mm]')
+        ax2.set_xlabel('X [mm]')
+        ax2.scatter(data[(name, 'x')], data[(name, 'z')],
+                   label=(name + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(name, 'z')].min())), s=0.5)
+        ax2.add_artist(plot_circle(0,data[(name,'sph_center')][2],data[(name,'sph_radius')][0]))
+        ax2.legend(markerscale=6,
+                  scatterpoints=1,
+                  loc='upper center',
+                  bbox_to_anchor=(0.5, -0.5),
+                  fancybox=True, ncol=3)
+        ax2.grid()
+        fig2.tight_layout()
+        output_name = name + '.png'
+        fig2.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
+        plt.close(fig2)
+        #----------------------------------------------------------------------------------------
         ax.scatter(data[(name, 'x')], data[(name, 'z')],
                    label=(name + '\n'r'min_z = '+'{:6.2f} mm'.format(data[(name, 'z')].min())), s=0.5)
         ax.add_artist(plot_circle(0,data[(name,'sph_center')][2],data[(name,'sph_radius')][0]))
@@ -53,7 +75,6 @@ def plot_slices(data, aspect_ratio=1):
               fancybox=True, ncol=3)
     ax.grid()
     fig.tight_layout()
-    fig.show()
     fig.savefig('output.png', orientation='landscape', papertype='a4', dpi=600)
     return fig, ax
 
