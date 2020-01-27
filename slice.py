@@ -2,12 +2,13 @@
 import glob
 import trimesh
 import numpy as np
-# from shapely.geometry import LineString
 import pandas as pd
 import matplotlib.pyplot as plt
 import plane_fit
+import pickle
+from dc_object import DataCraterAnalysis
 
-def slice_mesh(mesh, mesh_name, fit, location=None, direction=[0, -1, 0]):
+def slice_mesh(mesh, location=[0,0,0], direction=[0,1,0]):
     '''
         Schneidet das Netz mit einer Ebene (Ort und Richtung
         können definiert werden).
@@ -18,30 +19,14 @@ def slice_mesh(mesh, mesh_name, fit, location=None, direction=[0, -1, 0]):
         direction: Normale der Schnittebene (default: x-z Ebene) [array(3)]
     '''
 
-    points = pd.DataFrame(mesh.vertices,
-                         columns=pd.MultiIndex.from_product([[mesh_name],
-                                                             ['x', 'y', 'z']]))
-    if not location:
-        # Location auf Minimum der Z-Koordinate
-        # .idxmin liefert Zeile des Minimums in der angegebenen Spalte
-        location = points.iloc[points[(mesh_name, 'z')].idxmin()]
-    cross_section = mesh.section(plane_origin=[location[0],
-                                            location[1],
-                                            0], plane_normal=direction)
-
-    # MultiColumns: MeshName und darunter Koordinaten
-    columns = pd.MultiIndex.from_product([[mesh_name], ['x', 'y', 'z']])
+    cross_section = mesh.section(plane_origin=location, plane_normal=direction)
+    columns = ['x', 'y', 'z']
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
-    cross_section_df = pd.DataFrame(cross_section.vertices,
-                                 columns=columns).sort_values(by=[(mesh_name, 'x')]).reset_index(drop=True)
-    r_crater = np.sqrt(fit[1]**2 - fit[0][2]**2)    # calculate crater radius
-    cross_section_df[(mesh_name, 'min_z')] = pd.Series(points.iloc[points[(mesh_name, 'z')].idxmin()].values)
-    cross_section_df[(mesh_name, 'max_z')] = pd.Series(points.iloc[points[(mesh_name, 'z')].idxmax()].values)
-    cross_section_df[(mesh_name, 'sph_center')] = pd.Series(fit[0])
-    cross_section_df[(mesh_name, 'sph_radius')] = pd.Series(fit[1])
-    cross_section_df[(mesh_name, 'sph_error')] = pd.Series(fit[2])
-    cross_section_df[(mesh_name, 'r_crater')] = pd.Series(r_crater)
-    return cross_section_df, location
+    cross_section_df = pd.DataFrame(cross_section.vertices, columns=columns).sort_values(by=['x']).reset_index(drop=True)
+    loc_dir = pd.DataFrame([location,direction], index=['location','direction'], columns=['x','y','z'])
+    cross_section_df = pd.concat([loc_dir,cross_section_df])
+
+    return cross_section_df
 
 def plot_slices(data, aspect_ratio=1):
     '''
@@ -52,33 +37,30 @@ def plot_slices(data, aspect_ratio=1):
         aspect_ratio: Aspect ratio der Axen
     '''
 
-    fig, ax = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
+    #fig, ax = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
+    fig, ax = plt.subplots()
     ax.set_aspect(aspect=aspect_ratio)
+    #todo Schnittachse
     ax.set_title('Schnitte durch Zentrum Krater')
     ax.set_ylabel('Z [mm]')
     ax.set_ylim(-35,15)
     ax.set_xlabel('X [mm]')
-    if type(data.columns) == 'pandas.core.indexes.bas.Index':   # nur eine Slice
-        column_names = data.columns[0]
-    else:
-        column_names = data.columns.levels[0]
-    for name in column_names:
+    for analysis in data:
         #   Einzelplotts
         #----------------------------------------------------------------------------------------
         fig2, ax2 = plt.subplots(figsize=(11.6929, 8.26772)) #480/my_dpi, ..., dpi=my_dpi
         ax2.set_aspect(aspect=aspect_ratio)
+        #todo Schnittachse
         ax2.set_title('Schnitte durch Zentrum Krater')
         ax2.set_ylabel('Z [mm]')
         ax2.set_ylim(-35,15)
         ax2.set_xlabel('X [mm]')
-        ax2.scatter(data.xs('x',level=1,axis=1), data.xs('z',level=1,axis=1), color='gray', s=0.1, alpha=0.4) # select in a multiindex df in the second level
-        min_z_sph = data[(name, 'sph_center')][2] - data[(name, 'sph_radius')][0]
-        min_z = data[(name, 'min_z')][2]
-        label = (name + '\n' +
+        min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
+        min_z = min(analysis.points['z'][2:])
+        label = (analysis.name + '\n' +
                  'min_z = {0:6.2f} mm \nmin_z_sph = {1:6.2f} mm'.format(min_z, min_z_sph))
-        ax2.scatter(data[(name, 'x')], data[(name, 'z')],
-                   label=label, s=0.5)
-        ax2.add_artist(plot_circle(0,data[(name,'sph_center')][2],data[(name,'sph_radius')][0]))
+        ax2.scatter(analysis.cross_section['x'][2:], analysis.cross_section['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
+        ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
         ax2.legend(markerscale=6,
                   scatterpoints=1,
                   loc='upper center',
@@ -86,10 +68,11 @@ def plot_slices(data, aspect_ratio=1):
                   fancybox=True, ncol=3)
         ax2.grid()
         fig2.tight_layout()
-        output_name = name + '.png'
+        output_name = analysis.name + '.png'
         fig2.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
         plt.close(fig2)
         #----------------------------------------------------------------------------------------
+'''
         min_z_sph = data[(name, 'sph_center')][2] - data[(name, 'sph_radius')][0]
         min_z = data[(name, 'min_z')][2]
         label = (name + '\n' +
@@ -105,7 +88,25 @@ def plot_slices(data, aspect_ratio=1):
     ax.grid()
     fig.tight_layout()
     fig.savefig('output.png', orientation='landscape', papertype='a4', dpi=600)
-    return fig, ax
+'''
+    #return fig, ax
+
+
+def plot_contour(data):
+    levels = 50
+    fig = plt.figure()
+    outputname = data.name + '_contour.png'
+    ax = fig.add_subplot(aspect=1)
+    ax.set_xlabel('x [mm]')
+    ax.set_ylabel('y [mm]')
+    vmin = data.points['z'].min()
+    vmax = data.points['z'].max()
+    plot_val = np.linspace(vmin, vmax, levels, endpoint=True)
+    cntr = ax.tricontourf(data.points['x'][::500],data.points['y'][::500],data.points['z'][::500], plot_val, vmin=vmin, vmax=vmax, extend='both')#, cmap='')
+    ax.tricontour(data.points['x'][::50],data.points['y'][::50],data.points['z'][::50], levels,  linewidths=0.2, alpha=0.7, colors='black')
+    cbar = fig.colorbar(cntr, ax=ax, label='z [mm]')
+    fig.savefig(outputname, orientation='landscape', papertype='a4', dpi=600)
+    plt.close(fig)
 
 def plot_circle(x,y, radius=0.15):
     '''
@@ -121,24 +122,33 @@ def plot_circle(x,y, radius=0.15):
     # ax.add_artist(circle)
     return circle
 
-def read_slices():
-    data = pd.DataFrame()
-    for file in glob.glob('*.json'):
-        data = pd.concat([data, pd.read_json(file)], axis=1, sort=False)
-    return data
-
-#data = pd.read_csv('file', header=[0,1])
+def read_pkl():
+    from dc_object import DataCraterAnalysis
+    files = glob.glob('*.pkl')
+    c_a_list = []
+    for f in files:
+        c_a_list.append(pickle.load(open(f, 'rb')))
+    return c_a_list
 
 if __name__ == '__main__':
     files = glob.glob('*.stl')
     print(files)
-    cross_sections = pd.DataFrame()
+    c_a_list = []
     for file in files:
+        crater_analysis = DataCraterAnalysis()
         mesh_name = file.split('.')[0]
         output_name = mesh_name + '.csv'
-        mesh, sphere_fit_parameters = plane_fit.prepare_and_fit(file)
-        cs, __ = slice_mesh(mesh, mesh_name, sphere_fit_parameters, location=[0,0])
+        mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(file)
+        cs = slice_mesh(mesh)
+        crater_analysis.name = mesh_name
+        crater_analysis.points = mesh_points
+        crater_analysis.fit = fit_parameters
+        crater_analysis.cross_section = cs
         cs.to_csv(output_name, index=False)
+        pickle.dump( crater_analysis, open(mesh_name+'.pkl','wb'))
         # führt alle Schnitte in einem Dataframe zusammen, damit dann alle geplottet werden können
-        cross_sections = pd.concat([cross_sections, cs], axis=1)
-    plot_slices(cross_sections)
+        c_a_list.append(crater_analysis)
+        plot_contour(crater_analysis)
+    plot_slices(c_a_list)
+
+#data = pd.read_csv('file', header=[0,1])

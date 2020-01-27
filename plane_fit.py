@@ -49,8 +49,12 @@ def prepare_and_fit(mesh_file):
     trans_matrix_mesh = np.array([[1,0,0,-sph_fit_c[0]],[0,1,0,-sph_fit_c[1]],[0,0,1,0],[0,0,0,1]]) # align mesh and sphere in xy plane, so that origin is colinear with c_sphere
     mesh.apply_transform(trans_matrix_mesh)
     sph_fit_c[:2]=0 # x und y of sphere are 0, since the mesh has been moved
+    mesh_points = pd.DataFrame(mesh.vertices, columns=['x', 'y', 'z'])  # generate new points, after transform
+    fit_parameters = pd.DataFrame([sph_fit_c[2]], columns=['z'])
+    fit_parameters['r'] = sph_fit_r
+    fit_parameters['error'] = sph_fit_err
     #-----------------------------------------------------------------------------------------------------------------
 
-    return mesh, [sph_fit_c, sph_fit_r, sph_fit_err]
+    return mesh, mesh_points, fit_parameters
 
 #test.export('fit.stl')
