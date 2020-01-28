@@ -37,13 +37,15 @@ def plot_slices(data, aspect_ratio=1):
         aspect_ratio: Aspect ratio der Axen
     '''
 
+    #----------------- all xz -------------------------------------------------------------------------
     fig_all_xz, ax_all_xz = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
-    fig_all_xz, ax_all_xz = plt.subplots()
+    ax_all_xz.set_aspect(aspect=aspect_ratio)
     ax_all_xz.set_aspect(aspect=aspect_ratio)
     ax_all_xz.set_ylabel('Z [mm]')
     #-------------------------------------------------------------------------------------------------
+    #----------------- all yz -------------------------------------------------------------------------
     fig_all_yz, ax_all_yz = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
-    fig_all_yz, ax_all_yz = plt.subplots()
+    ax_all_yz.set_aspect(aspect=aspect_ratio)
     ax_all_yz.set_aspect(aspect=aspect_ratio)
     ax_all_yz.set_ylabel('Z [mm]')
     #ax.set_ylim(-35,15)
@@ -55,7 +57,6 @@ def plot_slices(data, aspect_ratio=1):
             ax2.set_aspect(aspect=aspect_ratio)
             direction = np.array(analysis.cross_section[n_slice].loc['direction'])
             location = np.array(analysis.cross_section[n_slice].loc['location'])
-            #todo Schnittachse
             ax2.set_ylabel('z [mm]')
             min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
             min_z = min(analysis.points['z'][2:])
@@ -63,11 +64,11 @@ def plot_slices(data, aspect_ratio=1):
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
                 ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene")
                 ax2.set_xlabel('y [mm]')
-                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
+                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden zeilen loc und dir stehen!
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
                 ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene")
                 ax2.set_xlabel('x [mm]')
-                ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
+                ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
             ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
             ax2.legend(markerscale=6,
                       scatterpoints=1,
@@ -79,30 +80,32 @@ def plot_slices(data, aspect_ratio=1):
             output_name = f'{analysis.name}_{n_slice}.png'
             fig2.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
             plt.close(fig2)
-            #----------------------------------------------------------------------------------------
+            #-------------- all xz and yz ------------------------------------------------------------
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
                 ax_all_yz.set_title(f"Schnitte durch die Y-Z Ebene")
                 ax_all_yz.set_xlabel('Y [mm]')
-                ax_all_yz.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
+                ax_all_yz.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
                 ax_all_xz.set_title(f"Schnitte durch die X-Z Ebene")
                 ax_all_xz.set_xlabel('X [mm]')
-                ax_all_xz.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
+                ax_all_xz.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
+    #-------------- all xz ------------------------------------------------------------
     ax_all_xz.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
               bbox_to_anchor=(0.5, -0.5),
               fancybox=True, ncol=3)
-    ax_all_xz.grid()
+    ax_all_xz.grid(linewidth=0.2, alpha=0.7, color='black')
     fig_all_xz.tight_layout()
     fig_all_xz.savefig('all_xz.png', orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig_all_xz)
+    #-------------- all yz ------------------------------------------------------------
     ax_all_yz.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
               bbox_to_anchor=(0.5, -0.5),
               fancybox=True, ncol=3)
-    ax_all_yz.grid()
+    ax_all_yz.grid(linewidth=0.2, alpha=0.7, color='black')
     fig_all_yz.tight_layout()
     fig_all_yz.savefig('all_yz.png', orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig_all_yz)
