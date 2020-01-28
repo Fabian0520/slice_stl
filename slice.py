@@ -54,16 +54,17 @@ def plot_slices(data, aspect_ratio=1):
             direction = np.array(analysis.cross_section[n_slice].loc['direction'])
             location = np.array(analysis.cross_section[n_slice].loc['location'])
             #todo Schnittachse
-            ax2.set_title(f"{analysis.name}\nSchnitte durch Punkt: {location}, Ebenennormale: {direction}")
             ax2.set_ylabel('z [mm]')
             ax2.set_ylim(-35,15)
             min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
             min_z = min(analysis.points['z'][2:])
             label = (f'{analysis.name} \nmin_z = {min_z:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
+                ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene"
                 ax2.set_xlabel('y [mm]')
                 ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
+                ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene"
                 ax2.set_xlabel('x [mm]')
                 ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
             ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
@@ -141,22 +142,23 @@ def read_pkl():
 if __name__ == '__main__':
     files = glob.glob('*.stl')
     print(files)
-    c_a_list = []
+    crater_analysis_list = []
     for file in files:
         crater_analysis = DataCraterAnalysis()
         mesh_name = file.split('.')[0]
         print(f'processing {mesh_name}')
         output_name = mesh_name + '.csv'
         mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(file)
+        #mesh.export('name.stl')
         crater_analysis.name = mesh_name
         crater_analysis.points = mesh_points
         crater_analysis.fit = fit_parameters
-        for direction in [[0,1,0],[1,0,0]]:
-            cs = slice_mesh(mesh, direction=direction)
+        for plane in [[0,1,0],[1,0,0]]:
+            cs = slice_mesh(mesh, direction=plane)
             crater_analysis.cross_section.append(cs)
         pickle.dump( crater_analysis, open(mesh_name+'.pkl','wb'))
-        c_a_list.append(crater_analysis)
+        crater_analysis_list.append(crater_analysis)
         plot_contour(crater_analysis)
-    plot_slices(c_a_list)
+    plot_slices(crater_analysis_list)
 
 #data = pd.read_csv('file', header=[0,1])
