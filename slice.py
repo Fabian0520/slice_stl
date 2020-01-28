@@ -60,11 +60,11 @@ def plot_slices(data, aspect_ratio=1):
             min_z = min(analysis.points['z'][2:])
             label = (f'{analysis.name} \nmin_z = {min_z:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
-                ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene"
+                ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene")
                 ax2.set_xlabel('y [mm]')
                 ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
-                ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene"
+                ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene")
                 ax2.set_xlabel('x [mm]')
                 ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden yeilen loc und dir stehen!
             ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
