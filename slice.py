@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import plane_fit
 import pickle
 from dc_object import DataCraterAnalysis
+import generate_report
 
 def slice_mesh(mesh, location=[0,0,0], direction=[0,1,0]):
     '''
@@ -36,37 +37,68 @@ def plot_slices(data, aspect_ratio=1):
         data: zu plottende Date. [pd.DataFrame]
         aspect_ratio: Aspect ratio der Axen
     '''
-
+    # minima und maxima von allen punkten finden (also von allen netzen)
+    # eigene Funktion schreiben?
+    min_all = pd.concat( [ data[i].points for i in range(0, len(data)) ] ).min()
+    max_all = pd.concat( [ data[i].points for i in range(0, len(data)) ] ).max()
+    d_all = abs(min_all) + max_all
+    plot_range_all = pd.DataFrame([], index=['x','y','z'])
+    plot_range_all = pd.concat([min_all, max_all], axis=1)    #z achse sollte groesseren abstand haben!
+    plot_range_all.columns = ['min','max']
+    plot_range_all['min']['x':'y'] = plot_range_all['min']['x':'y'] - d_all['x':'y']*0.05
+    plot_range_all['max']['x':'y'] = plot_range_all['max']['x':'y'] + d_all['x':'y']*0.05
+    plot_range_all['min']['z'] = plot_range_all['min']['z'] - d_all['z']*0.2
+    plot_range_all['max']['z'] = plot_range_all['max']['z'] + d_all['z']*0.2
     #----------------- all xz -------------------------------------------------------------------------
     fig_all_xz, ax_all_xz = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
     ax_all_xz.set_aspect(aspect=aspect_ratio)
-    ax_all_xz.set_aspect(aspect=aspect_ratio)
     ax_all_xz.set_ylabel('Z [mm]')
+    ax_all_xz.set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
+    ax_all_xz.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
     #-------------------------------------------------------------------------------------------------
     #----------------- all yz -------------------------------------------------------------------------
     fig_all_yz, ax_all_yz = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
     ax_all_yz.set_aspect(aspect=aspect_ratio)
-    ax_all_yz.set_aspect(aspect=aspect_ratio)
     ax_all_yz.set_ylabel('Z [mm]')
+    ax_all_yz.set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
+    ax_all_yz.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
     #ax.set_ylim(-35,15)
     for analysis in data:
+        '''
+        x_min = min(analysis.points['x'][2:])
+        x_max = max(analysis.points['x'][2:])
+        d_x = x_max + abs(x_min)
+        y_min = min(analysis.points['y'][2:])
+        y_max = max(analysis.points['y'][2:])
+        d_y = y_max + abs(y_min)
+        z_max = max(analysis.points['z'][2:])
+        d_z = z_max + abs(z_min)
+        '''
+        z_min = min(analysis.points['z'][2:])
         for n_slice in range(0,len(analysis.cross_section)):
             #   Einzelplotts
             #----------------------------------------------------------------------------------------
             fig2, ax2 = plt.subplots(figsize=(11.6929, 8.26772)) #480/my_dpi, ..., dpi=my_dpi
             ax2.set_aspect(aspect=aspect_ratio)
-            direction = np.array(analysis.cross_section[n_slice].loc['direction'])
-            location = np.array(analysis.cross_section[n_slice].loc['location'])
+            #direction = np.array(analysis.cross_section[n_slice].loc['direction'])
+            #location = np.array(analysis.cross_section[n_slice].loc['location'])
+            #ax2.set_ylim([(z_min - 0.2*d_z),(z_max + 0.2*d_z)]) # set x limits to max / min plus 20% of total
+            ax2.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
             ax2.set_ylabel('z [mm]')
-            min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
-            min_z = min(analysis.points['z'][2:])
-            label = (f'{analysis.name} \nmin_z = {min_z:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
+            min_z_sph = float((analysis.fit['r'] - analysis.fit['z']) * (-1))
+            label = (f'{analysis.name} \nmin_z = {z_min:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
                 ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene")
+                # ax2.set_xlim([(x_min - 0.05 * d_x),(x_max + 0.05 * d_x)])   # set x limits to max / min plus 5% of total
+                # alternative
+                ax2.set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
                 ax2.set_xlabel('y [mm]')
                 ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden zeilen loc und dir stehen!
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
                 ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene")
+                # ax2.set_xlim([(x_min - 0.05 * d_x),(x_max + 0.05 * d_x)])   # set x limits to max / min plus 5% of total
+                # alternative
+                ax2.set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
                 ax2.set_xlabel('x [mm]')
                 ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
             ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
@@ -171,5 +203,6 @@ if __name__ == '__main__':
         crater_analysis_list.append(crater_analysis)
         plot_contour(crater_analysis)
     plot_slices(crater_analysis_list)
+    generate_report.generate_report(crater_analysis_list)
 
 #data = pd.read_csv('file', header=[0,1])

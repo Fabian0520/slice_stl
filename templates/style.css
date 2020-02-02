@@ -1,0 +1,139 @@
+body {
+    font-family: Tahoma, Geneva, sans-serif; 
+    margin: 1em 2em 1em 2em;
+    font-size: 100%; line-height: 130%;
+} 
+@page {
+    /* switch to landscape */
+    size: landscape;
+    /* set page margins */
+    margin: 0.5cm;
+    @top-center {
+        content: element(header);
+    }
+    @bottom-center {
+        content: element(footer);
+    }
+    @bottom-right{
+        content: counter(page) " of " counter(pages);
+    }
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: Trebuchet MS, Helvetica, sans-serif; 
+    font-weight: bold; 
+    line-height:100%;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+} 
+h1 {
+    font-size: 2.6em; 
+    color:#000000;
+} 
+h2 {
+    font-size: 2.2em; 
+    color: #404040;
+}
+h3 {
+    font-size: 1.8em;
+    color: #707070;
+} 
+h4 {
+    font-size: 1.4em;
+    color: #909090;
+}
+h5 {
+    font-size: 1.3em; 
+    color: #989898;
+}
+h6 {
+    font-size: 1.2em; 
+    color: #9c9c9c;
+} 
+p, pre, blockquote, table, ul, ol, dl {
+    margin-top: 1em; 
+    margin-bottom: 1em;
+}
+p.page_break {
+    page-break-before: always;
+}
+ul ul, ul ol, ol ol, ol ul {
+    margin-top: 0.5em; 
+    margin-bottom: 0.5em;
+}
+li {
+    margin: 0.3em auto;
+}
+ul {
+    margin-left: 2em;
+    padding-left: 0.5em;
+}
+dt {
+    font-weight: bold;
+}
+img {
+    border: none;
+}
+.center{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+}
+pre {
+    border-left: 1px solid #ccc;
+    margin-left: 2em;
+    padding-left: 0.5em;
+}
+blockquote {
+    padding: 0.4em;
+    background-color: #f6f5eb;
+}
+th, td {
+    border: 1px solid #ccc; 
+    padding: 0.3em;
+}
+th {
+    background-color: #f0f0f0;
+}
+hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    width: 100%;
+}
+del {
+    text-decoration: line-through;
+    color: #777777;
+}
+.toc li {
+    list-style-type: none;
+}
+.todo {
+    font-weight: bold;
+    background-color: #f0ece8;
+    color: #a03020;
+}
+.justleft {
+    text-align: left;
+}
+.justright {
+    text-align: right;
+}
+.justcenter {
+    text-align: center;
+}
+.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+.tag {
+    background-color: #eeeeee;
+    font-family: monospace;
+    padding: 2px;
+}
+.header a {
+    text-decoration: none;
+    color: inherit;
+}
+footer {
+    page-break-after: always;
+}

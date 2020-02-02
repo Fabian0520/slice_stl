@@ -18,7 +18,7 @@ class DataCraterAnalysis:
                                metadata={'description':'Parameters of the fitted sphere. pd.DataFrame. Columns: [center_x, center_y, center_z, radius, error]'},
                                compare=False,
                                repr=False)
-    # mesh einfügen
+    # mesh einfügen?
     def __repr__(self):
         number_of_slices = len(self.cross_section)
         name = self.name

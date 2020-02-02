@@ -7,3 +7,5 @@
 *.png
 .ipynb_checkpoints/
 *.ipynb
+*.pkl
+*.pdf

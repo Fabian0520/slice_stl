@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title%}About page{% endblock %}
+
+{% block content %}
+{% for item in content%}
+<h1>About page {{ item.name }} </h1>
+    <p>
+        This is about page
+        {{ item.name }}
+
+        <table>
+          <tr>
+            <td>Versuchsnummer</th>
+            <td>{{ item.name }}</th>
+          </tr>
+          <tr>
+            <td>Auswertedatum</th>
+            <td>{{ item.glob_min }}</th>
+          </tr>
+          <tr>
+            <td>Tiefster Punkt Krater</th>
+            <td>{{ item.contour_image }}</th>
+          </tr>
+          {% for img in item.cs_image %}
+          <tr>
+            <td>Tiefster Punkt gefittete Kugel</td>
+            <td>{{ img }}</td>
+          </tr>
+          {% endfor %}
+          <tr>
+            <td>Durchmesser Krater</td>
+            <td>T1</td>
+          </tr>
+        </table>
+
+        <img class="center" src="{{ item.contour_image }}" width="650" alt=""/> 
+
+      {% for img in item.cs_image %}
+        <img class="center" src="{{ img }}" width="650" alt=""/> 
+      {% endfor %}
+    </p>
+    <p class="page_break"></p>
+{% endfor %}
+{% endblock %}
