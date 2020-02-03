@@ -6,9 +6,6 @@
 {% for item in content%}
 <h1>Auswertung von Versuch {{ item.name }} </h1>
     <p>
-        This is about page
-        {{ item.name }}
-
         <table>
           <tr>
             <td>Tiefster Punkt im Scan</th>
@@ -40,4 +37,10 @@
     </p>
     <p class="page_break"></p>
 {% endfor %}
+
+<h1>Gesammtplots</h1>
+    <p>
+       <img class="center" src="{{ image_all }}" width="650" alt=""/> 
+    </p>
+
 {% endblock %}

@@ -31,7 +31,7 @@ def slice_mesh(mesh, location=[0,0,0], direction=[0,1,0]):
 
 def plot_slices(data, aspect_ratio=1):
     '''
-        Plottet die Schnitte durch die Netze. fig2 sind die Einzelplots, fig sind
+        Plottet die Schnitte durch die Netze. fig2 sind die Einzelplots, fig_all sind
         die Übersihtsplots (falls mehrer Slices übergeben werden).
 
         data: zu plottende Date. [pd.DataFrame]
@@ -49,104 +49,74 @@ def plot_slices(data, aspect_ratio=1):
     plot_range_all['max']['x':'y'] = plot_range_all['max']['x':'y'] + d_all['x':'y']*0.05
     plot_range_all['min']['z'] = plot_range_all['min']['z'] - d_all['z']*0.2
     plot_range_all['max']['z'] = plot_range_all['max']['z'] + d_all['z']*0.2
-    #----------------- all xz -------------------------------------------------------------------------
-    fig_all_xz, ax_all_xz = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
-    ax_all_xz.set_aspect(aspect=aspect_ratio)
-    ax_all_xz.set_ylabel('Z [mm]')
-    ax_all_xz.set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
-    ax_all_xz.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
-    #-------------------------------------------------------------------------------------------------
-    #----------------- all yz -------------------------------------------------------------------------
-    fig_all_yz, ax_all_yz = plt.subplots(figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
-    ax_all_yz.set_aspect(aspect=aspect_ratio)
-    ax_all_yz.set_ylabel('Z [mm]')
-    ax_all_yz.set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
-    ax_all_yz.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
-    #ax.set_ylim(-35,15)
+
+    fig_all, ax_all = plt.subplots(2, 1, sharex=True, sharey=True, figsize=(11.6929, 8.26772))   # Din A4 Größe in inch Landscape
+    ax_all[0].set_aspect(aspect=aspect_ratio)
+    ax_all[1].set_aspect(aspect=aspect_ratio)
+    ax_all[0].set_ylabel('Z [mm]')
+    ax_all[1].set_ylabel('Z [mm]')
+    ax_all[0].set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
+    ax_all[1].set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
+    ax_all[0].set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
+    ax_all[1].set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
+    ax_all[0].grid(linewidth=0.2, alpha=0.7, color='black')
+    ax_all[1].grid(linewidth=0.2, alpha=0.7, color='black')
+
     for analysis in data:
-        '''
-        x_min = min(analysis.points['x'][2:])
-        x_max = max(analysis.points['x'][2:])
-        d_x = x_max + abs(x_min)
-        y_min = min(analysis.points['y'][2:])
-        y_max = max(analysis.points['y'][2:])
-        d_y = y_max + abs(y_min)
-        z_max = max(analysis.points['z'][2:])
-        d_z = z_max + abs(z_min)
-        '''
         z_min = min(analysis.points['z'][2:])
+        min_z_sph = float((analysis.fit['r'] - analysis.fit['z']) * (-1))
+        fig2 = plt.figure(figsize=(11.6929, 8.26772))
+        fig2.suptitle(f"{analysis.name}")
+
+        ax2 = fig2.add_subplot(211) #480/my_dpi, ..., dpi=my_dpi
+        ax2.set_aspect(aspect=aspect_ratio)
+        ax2.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
+        ax2.set_ylabel('z [mm]')
+        ax2.set_title(f"Schnitte durch die Y-Z Ebene")
+        ax2.set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
+        ax2.set_xlabel('y [mm]')
+        ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
+        ax2.grid(linewidth=0.2, alpha=0.7, color='black')
+
+        ax3 = fig2.add_subplot(212, sharex=ax2, sharey=ax2) #480/my_dpi, ..., dpi=my_dpi
+        ax3.set_aspect(aspect=aspect_ratio)
+        ax3.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
+        ax3.set_ylabel('z [mm]')
+        ax3.set_title(f"Schnitte durch die X-Z Ebene")
+        ax3.set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
+        ax3.set_xlabel('x [mm]')
+        ax3.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
+        ax3.grid(linewidth=0.2, alpha=0.7, color='black')
+
         for n_slice in range(0,len(analysis.cross_section)):
-            #   Einzelplotts
-            #----------------------------------------------------------------------------------------
-            fig2, ax2 = plt.subplots(figsize=(11.6929, 8.26772)) #480/my_dpi, ..., dpi=my_dpi
-            ax2.set_aspect(aspect=aspect_ratio)
-            #direction = np.array(analysis.cross_section[n_slice].loc['direction'])
-            #location = np.array(analysis.cross_section[n_slice].loc['location'])
-            #ax2.set_ylim([(z_min - 0.2*d_z),(z_max + 0.2*d_z)]) # set x limits to max / min plus 20% of total
-            ax2.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
-            ax2.set_ylabel('z [mm]')
-            min_z_sph = float((analysis.fit['r'] - analysis.fit['z']) * (-1))
-            #label = (f'{analysis.name} \nmin_z = {z_min:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
+            min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
+            min_z = min(analysis.points['z'][2:])
+            label = (f'{analysis.name} \nmin_z = {min_z:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
-                ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene")
-                # ax2.set_xlim([(x_min - 0.05 * d_x),(x_max + 0.05 * d_x)])   # set x limits to max / min plus 5% of total
-                # alternative
-                ax2.set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
-                ax2.set_xlabel('y [mm]')
-                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label) # [2:] weil in ersten beiden zeilen loc und dir stehen!
+                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
+                ax_all[0].set_title(f"Schnitte durch die Y-Z Ebene")
+                ax_all[0].set_xlabel('Y [mm]')
+                ax_all[0].scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
-                ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene")
-                # ax2.set_xlim([(x_min - 0.05 * d_x),(x_max + 0.05 * d_x)])   # set x limits to max / min plus 5% of total
-                # alternative
-                ax2.set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
-                ax2.set_xlabel('x [mm]')
-                ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
-            ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
-            '''
-            ax2.legend(markerscale=6,
+                ax3.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
+                ax_all[1].set_title(f"Schnitte durch die X-Z Ebene")
+                ax_all[1].set_xlabel('X [mm]')
+                ax_all[1].scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
+
+        ax_all[1].legend(markerscale=6,
                       scatterpoints=1,
                       loc='upper center',
                       bbox_to_anchor=(0.5, -0.5),
                       fancybox=True, ncol=3)
-            '''
-            ax2.grid(linewidth=0.2, alpha=0.7, color='black')
-            fig2.tight_layout()
-            output_name = f'{analysis.name}_{n_slice}.png'
-            fig2.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
-            plt.close(fig2)
-            #-------------- all xz and yz ------------------------------------------------------------
-            if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
-                ax_all_yz.set_title(f"Schnitte durch die Y-Z Ebene")
-                ax_all_yz.set_xlabel('Y [mm]')
-                ax_all_yz.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
-            elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
-                ax_all_xz.set_title(f"Schnitte durch die X-Z Ebene")
-                ax_all_xz.set_xlabel('X [mm]')
-                ax_all_xz.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
+
+        fig2.tight_layout()
+        output_name = f'{analysis.name}.png'
+        fig2.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
+        plt.close(fig2)
     #-------------- all xz ------------------------------------------------------------
-    '''
-    ax_all_xz.legend(markerscale=6,
-              scatterpoints=1,
-              loc='upper center',
-              bbox_to_anchor=(0.5, -0.5),
-              fancybox=True, ncol=3)
-    '''
-    ax_all_xz.grid(linewidth=0.2, alpha=0.7, color='black')
-    fig_all_xz.tight_layout()
-    fig_all_xz.savefig('all_xz.png', orientation='landscape', papertype='a4', dpi=600)
-    plt.close(fig_all_xz)
-    #-------------- all yz ------------------------------------------------------------
-    '''
-    ax_all_yz.legend(markerscale=6,
-              scatterpoints=1,
-              loc='upper center',
-              bbox_to_anchor=(0.5, -0.5),
-              fancybox=True, ncol=3)
-    '''
-    ax_all_yz.grid(linewidth=0.2, alpha=0.7, color='black')
-    fig_all_yz.tight_layout()
-    fig_all_yz.savefig('all_yz.png', orientation='landscape', papertype='a4', dpi=600)
-    plt.close(fig_all_yz)
+    fig_all.tight_layout()
+    fig_all.savefig('all.png', orientation='landscape', papertype='a4', dpi=600)
+    plt.close(fig_all)
 
 def plot_contour(data):
     levels = 50
@@ -192,7 +162,7 @@ def report(data):
     generate_report.generate_report(data)
 
 if __name__ == '__main__':
-    files = glob.glob('*.stl')
+    files = sorted(glob.glob('*.stl'))
     print(files)
     crater_analysis_list = []
     for file in files:

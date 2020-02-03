@@ -11,13 +11,13 @@ def generate_report(crater_analysis_list):
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
     template = env.get_template('about.html')
-
-    content = list()
+    all_names = list()
+    single_plots = list()
 
     for scan in crater_analysis_list:
         cs_image=list()
         name = scan.name
-        # Bilder sortieiren und in content
+        all_names.append(name)  # für all plots
         points = scan.points
         glob_min = abs(min(points[2:]['z']))
         glob_max = abs(max(points[2:]['z']))
@@ -35,7 +35,7 @@ def generate_report(crater_analysis_list):
             # scanspezifische Daten berechnen
             # -> in eine liste und später in den content
         #import ipdb; ipdb.set_trace()
-        content.append({'name' : name,
+        single_plots.append({'name' : name,
                         'glob_min' : f'{glob_min:3.2f} mm',
                         'glob_max' : f'{glob_max:3.2f} mm',
                         'min_xz' : f'{min_xz:3.2f} mm',
@@ -46,5 +46,8 @@ def generate_report(crater_analysis_list):
                         'cs_image' : cs_image,
                         'contour_image' : contour_image
                        })
-    output = template.render(content=content)
+
+    image_all = cwd + glob.glob(f'all.png')[0]
+
+    output = template.render(content=single_plots, image_all = image_all)
     pdfkit.from_string(output, 'test.pdf', css=cwd+'templates/style.css')
