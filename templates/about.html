@@ -4,33 +4,31 @@
 
 {% block content %}
 {% for item in content%}
-<h1>About page {{ item.name }} </h1>
+<h1>Auswertung von Versuch {{ item.name }} </h1>
     <p>
         This is about page
         {{ item.name }}
 
         <table>
           <tr>
-            <td>Versuchsnummer</th>
-            <td>{{ item.name }}</th>
-          </tr>
-          <tr>
-            <td>Auswertedatum</th>
+            <td>Tiefster Punkt im Scan</th>
             <td>{{ item.glob_min }}</th>
           </tr>
           <tr>
-            <td>Tiefster Punkt Krater</th>
-            <td>{{ item.contour_image }}</th>
+            <td>Tiefster Punkt in XZ Ebene</th>
+            <td>{{ item.min_xz }}</th>
           </tr>
-          {% for img in item.cs_image %}
+          <tr>
+            <td>Tiefster Punkt in YZ Ebene</th>
+            <td>{{ item.min_yz }}</th>
+          </tr>
           <tr>
             <td>Tiefster Punkt gefittete Kugel</td>
-            <td>{{ img }}</td>
+            <td>{{ item.sph_min }}</td>
           </tr>
-          {% endfor %}
           <tr>
-            <td>Durchmesser Krater</td>
-            <td>T1</td>
+            <td>Durchmesser Krater (aus gefitteter Kugel)</td>
+            <td>{{ item.radius }}</td>
           </tr>
         </table>
 

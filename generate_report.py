@@ -17,13 +17,14 @@ def generate_report(crater_analysis_list):
     for scan in crater_analysis_list:
         cs_image=list()
         name = scan.name
-        image_list = glob.glob(f'{name}.png')
         # Bilder sortieiren und in content
         points = scan.points
-        glob_min = min(points[2:]['z'])
-        glob_max = max(points[2:]['z'])
-        sph_min = float((scan.fit['r'] - scan.fit['z']) * (-1))
-        radius = float(np.sqrt(scan.fit['r']**2 - scan.fit['z']**2)*2)
+        glob_min = abs(min(points[2:]['z']))
+        glob_max = abs(max(points[2:]['z']))
+        sph_min = abs(float((scan.fit['r'] - scan.fit['z']) * (-1)))
+        radius = abs(float(np.sqrt(scan.fit['r']**2 - scan.fit['z']**2)*2))
+        min_xz = abs(scan.cross_section[0]['z'][2:].min())
+        min_yz = abs(scan.cross_section[1]['z'][2:].min())
         image_files = glob.glob(f'{name}*.png')
         for img in image_files:
             if 'contour' in img:
@@ -37,6 +38,8 @@ def generate_report(crater_analysis_list):
         content.append({'name' : name,
                         'glob_min' : f'{glob_min:3.2f} mm',
                         'glob_max' : f'{glob_max:3.2f} mm',
+                        'min_xz' : f'{min_xz:3.2f} mm',
+                        'min_yz' : f'{min_yz:3.2f} mm',
                         'sph_min' : f'{sph_min:3.2f} mm',
                         'radius' : f'{radius:3.2f} mm',
                         'cross_sections' : list(),

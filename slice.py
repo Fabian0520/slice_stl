@@ -86,27 +86,29 @@ def plot_slices(data, aspect_ratio=1):
             ax2.set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
             ax2.set_ylabel('z [mm]')
             min_z_sph = float((analysis.fit['r'] - analysis.fit['z']) * (-1))
-            label = (f'{analysis.name} \nmin_z = {z_min:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
+            #label = (f'{analysis.name} \nmin_z = {z_min:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
                 ax2.set_title(f"{analysis.name}\nSchnitte durch die Y-Z Ebene")
                 # ax2.set_xlim([(x_min - 0.05 * d_x),(x_max + 0.05 * d_x)])   # set x limits to max / min plus 5% of total
                 # alternative
                 ax2.set_xlim([ plot_range_all[col]['x'] for col in plot_range_all.columns ])
                 ax2.set_xlabel('y [mm]')
-                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label) # [2:] weil in ersten beiden zeilen loc und dir stehen!
+                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label) # [2:] weil in ersten beiden zeilen loc und dir stehen!
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
                 ax2.set_title(f"{analysis.name}\nSchnitte durch die X-Z Ebene")
                 # ax2.set_xlim([(x_min - 0.05 * d_x),(x_max + 0.05 * d_x)])   # set x limits to max / min plus 5% of total
                 # alternative
                 ax2.set_xlim([ plot_range_all[col]['y'] for col in plot_range_all.columns ])
                 ax2.set_xlabel('x [mm]')
-                ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
+                ax2.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
             ax2.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
+            '''
             ax2.legend(markerscale=6,
                       scatterpoints=1,
                       loc='upper center',
                       bbox_to_anchor=(0.5, -0.5),
                       fancybox=True, ncol=3)
+            '''
             ax2.grid(linewidth=0.2, alpha=0.7, color='black')
             fig2.tight_layout()
             output_name = f'{analysis.name}_{n_slice}.png'
@@ -116,27 +118,31 @@ def plot_slices(data, aspect_ratio=1):
             if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
                 ax_all_yz.set_title(f"Schnitte durch die Y-Z Ebene")
                 ax_all_yz.set_xlabel('Y [mm]')
-                ax_all_yz.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
+                ax_all_yz.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
             elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
                 ax_all_xz.set_title(f"Schnitte durch die X-Z Ebene")
                 ax_all_xz.set_xlabel('X [mm]')
-                ax_all_xz.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
+                ax_all_xz.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
     #-------------- all xz ------------------------------------------------------------
+    '''
     ax_all_xz.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
               bbox_to_anchor=(0.5, -0.5),
               fancybox=True, ncol=3)
+    '''
     ax_all_xz.grid(linewidth=0.2, alpha=0.7, color='black')
     fig_all_xz.tight_layout()
     fig_all_xz.savefig('all_xz.png', orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig_all_xz)
     #-------------- all yz ------------------------------------------------------------
+    '''
     ax_all_yz.legend(markerscale=6,
               scatterpoints=1,
               loc='upper center',
               bbox_to_anchor=(0.5, -0.5),
               fancybox=True, ncol=3)
+    '''
     ax_all_yz.grid(linewidth=0.2, alpha=0.7, color='black')
     fig_all_yz.tight_layout()
     fig_all_yz.savefig('all_yz.png', orientation='landscape', papertype='a4', dpi=600)
@@ -181,6 +187,9 @@ def read_pkl():
     for f in files:
         c_a_list.append(pickle.load(open(f, 'rb')))
     return c_a_list
+
+def report(data):
+    generate_report.generate_report(data)
 
 if __name__ == '__main__':
     files = glob.glob('*.stl')
