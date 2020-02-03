@@ -2,12 +2,11 @@
 
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
-import os
-import glob
+import pathlib
 import numpy as np
 
 def generate_report(crater_analysis_list):
-    cwd = os.getcwd() + '/'
+    path = pathlib.Path.cwd()
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
     template = env.get_template('about.html')
@@ -17,6 +16,7 @@ def generate_report(crater_analysis_list):
     for scan in crater_analysis_list:
         cs_image=list()
         name = scan.name
+        contour_image = ''
         all_names.append(name)  # für all plots
         points = scan.points
         glob_min = abs(min(points[2:]['z']))
@@ -25,12 +25,12 @@ def generate_report(crater_analysis_list):
         radius = abs(float(np.sqrt(scan.fit['r']**2 - scan.fit['z']**2)*2))
         min_xz = abs(scan.cross_section[0]['z'][2:].min())
         min_yz = abs(scan.cross_section[1]['z'][2:].min())
-        image_files = glob.glob(f'{name}*.png')
+        image_files = sorted([a for a in path.glob(f'{name}*.png')])
         for img in image_files:
-            if 'contour' in img:
-                contour_image = cwd + img
+            if 'contour' in img.name:
+                contour_image = path / img
             else:
-                cs_image.append(cwd + img)
+                cs_image.append(path / img)
         #for plane in scan.cross_section:
             # scanspezifische Daten berechnen
             # -> in eine liste und später in den content
@@ -47,7 +47,8 @@ def generate_report(crater_analysis_list):
                         'contour_image' : contour_image
                        })
 
-    image_all = cwd + glob.glob(f'all.png')[0]
+    image_all = [a for a in path.glob(f'all.png')]
 
-    output = template.render(content=single_plots, image_all = image_all)
-    pdfkit.from_string(output, 'test.pdf', css=cwd+'templates/style.css')
+    css_path = path / 'templates' / 'style.css'
+    output = template.render(content=single_plots, image_all = image_all[0].resolve())
+    pdfkit.from_string(output, 'test.pdf', css = css_path)

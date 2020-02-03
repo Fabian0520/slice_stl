@@ -1,5 +1,5 @@
 #!./venv/bin/python
-import glob
+import pathlib
 import trimesh
 import numpy as np
 import pandas as pd
@@ -152,7 +152,9 @@ def plot_circle(x,y, radius=0.15):
 
 def read_pkl():
     from dc_object import DataCraterAnalysis
-    files = glob.glob('*.pkl')
+    #files = glob.glob('*.pkl')
+    path = pathlib.Path.cwd()
+    files = sorted([a for a in path.glob('*.pkl')])
     c_a_list = []
     for f in files:
         c_a_list.append(pickle.load(open(f, 'rb')))
@@ -162,12 +164,14 @@ def report(data):
     generate_report.generate_report(data)
 
 if __name__ == '__main__':
-    files = sorted(glob.glob('*.stl'))
-    print(files)
+    #files = sorted(glob.glob('*.stl'))
+    path = pathlib.Path.cwd()
+    files = sorted([a for a in path.glob('*.stl')])
     crater_analysis_list = []
     for file in files:
         crater_analysis = DataCraterAnalysis()
-        mesh_name = file.split('.')[0]
+        #mesh_name = str(file).split('.')[0]
+        mesh_name = file.stem
         print(f'processing {mesh_name}')
         output_name = mesh_name + '.csv'
         mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(file)
