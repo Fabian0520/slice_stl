@@ -7,6 +7,9 @@ import numpy as np
 
 def generate_report(crater_analysis_list):
     path = pathlib.Path.cwd()
+    out_dir = path.joinpath('output')
+    if out_dir.exists() == False:
+        out_dir.mkdir()
     file_loader = FileSystemLoader('templates')
     env = Environment(loader=file_loader)
     template = env.get_template('about.html')
@@ -25,12 +28,12 @@ def generate_report(crater_analysis_list):
         radius = abs(float(np.sqrt(scan.fit['r']**2 - scan.fit['z']**2)*2))
         min_xz = abs(scan.cross_section[0]['z'][2:].min())
         min_yz = abs(scan.cross_section[1]['z'][2:].min())
-        image_files = sorted([a for a in path.glob(f'{name}*.png')])
+        image_files = sorted([a for a in out_dir.glob(f'{name}*.png')])
         for img in image_files:
             if 'contour' in img.name:
-                contour_image = path / img
+                contour_image = out_dir.joinpath(img)
             else:
-                cs_image.append(path / img)
+                cs_image.append(out_dir.joinpath(img))
         #for plane in scan.cross_section:
             # scanspezifische Daten berechnen
             # -> in eine liste und später in den content
@@ -47,8 +50,8 @@ def generate_report(crater_analysis_list):
                         'contour_image' : contour_image
                        })
 
-    image_all = [a for a in path.glob(f'all.png')]
+    image_all = [a for a in out_dir.glob(f'all.png')]
 
     css_path = path / 'templates' / 'style.css'
     output = template.render(content=single_plots, image_all = image_all[0].resolve())
-    pdfkit.from_string(output, 'test.pdf', css = css_path)
+    pdfkit.from_string(output, out_dir.joinpath('report.pdf'), css = css_path)

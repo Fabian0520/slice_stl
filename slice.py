@@ -110,12 +110,13 @@ def plot_slices(data, aspect_ratio=1):
                       fancybox=True, ncol=3)
 
         fig2.tight_layout()
-        output_name = f'{analysis.name}.png'
-        fig2.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
+        output_name = pathlib.Path.cwd().joinpath('output').joinpath(analysis.name + '.png')
+        fig2.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
         plt.close(fig2)
     #-------------- all xz ------------------------------------------------------------
     fig_all.tight_layout()
-    fig_all.savefig('all.png', orientation='landscape', papertype='a4', dpi=600)
+    output_name = pathlib.Path.cwd().joinpath('output').joinpath('all.png')
+    fig_all.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig_all)
 
 def plot_contour(data):
@@ -132,8 +133,8 @@ def plot_contour(data):
     cntr = ax.tricontourf(data.points['x'][::500],data.points['y'][::500],data.points['z'][::500], plot_val, vmin=vmin, vmax=vmax, extend='both')#, cmap='')
     ax.tricontour(data.points['x'][::50],data.points['y'][::50],data.points['z'][::50], levels,  linewidths=0.2, alpha=0.7, colors='black')
     cbar = fig.colorbar(cntr, ax=ax, label='z [mm]')
-    output_name = f'{data.name}_contour.png'
-    fig.savefig(output_name, orientation='landscape', papertype='a4', dpi=600)
+    output_name = pathlib.Path.cwd().joinpath('output').joinpath(data.name + '_contour.png')
+    fig.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig)
 
 def plot_circle(x,y, radius=0.15):
@@ -147,12 +148,10 @@ def plot_circle(x,y, radius=0.15):
                     edgecolor='black', facecolor=(0,0,0, .0125),
                     path_effects=[withStroke(linewidth=5, foreground='w')],
                     alpha=0.1)
-    # ax.add_artist(circle)
     return circle
 
 def read_pkl():
     from dc_object import DataCraterAnalysis
-    #files = glob.glob('*.pkl')
     path = pathlib.Path.cwd()
     files = sorted([a for a in path.glob('*.pkl')])
     c_a_list = []
@@ -166,15 +165,20 @@ def report(data):
 if __name__ == '__main__':
     #files = sorted(glob.glob('*.stl'))
     path = pathlib.Path.cwd()
-    files = sorted([a for a in path.glob('*.stl')])
+    in_dir = path.joinpath('input')
+    out_dir = path.joinpath('output')
+    if in_dir.exists() == False:
+        in_dir.mkdir()
+    if out_dir.exists() == False:
+        out_dir.mkdir()
+    files = sorted([a for a in in_dir.glob('*.stl')])
     crater_analysis_list = []
     for file in files:
         crater_analysis = DataCraterAnalysis()
-        #mesh_name = str(file).split('.')[0]
         mesh_name = file.stem
         print(f'processing {mesh_name}')
         output_name = mesh_name + '.csv'
-        mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(file)
+        mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(str(file))
         #mesh.export('name.stl')
         crater_analysis.name = mesh_name
         crater_analysis.points = mesh_points
@@ -182,7 +186,7 @@ if __name__ == '__main__':
         for plane in [[0,1,0],[1,0,0]]:
             cs = slice_mesh(mesh, direction=plane)
             crater_analysis.cross_section.append(cs)
-        pickle.dump( crater_analysis, open(mesh_name+'.pkl','wb'))
+        pickle.dump( crater_analysis, open(out_dir.joinpath(mesh_name+'.pkl'),'wb'))
         crater_analysis_list.append(crater_analysis)
         plot_contour(crater_analysis)
     plot_slices(crater_analysis_list)
