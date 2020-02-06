@@ -19,14 +19,13 @@ def slice_mesh(mesh, location=[0,0,0], direction=[0,1,0]):
         location: Punkt der Schnittebene [array(3)]
         direction: Normale der Schnittebene (default: x-z Ebene) [array(3)]
     '''
-
     cross_section = mesh.section(plane_origin=location, plane_normal=direction)
     # erzeugt einen String aus den Listen für direction und location
-    dir_string = ''.join(map(str, direction))
-    loc_string = ''.join(map(str, location))
-    columns = pd.MultiIndex.from_product([[dir_string],['x', 'y', 'z']])
+    direction_str = ''.join(map(str, direction))
+    location_str = ''.join(map(str, location))
+    columns = pd.MultiIndex.from_product([[direction_str],['x', 'y', 'z']])
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
-    cross_section_df = pd.DataFrame(cross_section.vertices, columns=columns).reset_index(drop=True).sort_values(by=(dir_string,'x'))
+    cross_section_df = pd.DataFrame(cross_section.vertices, columns=columns).reset_index(drop=True).sort_values(by=(direction_str,'x'))
 
     return cross_section_df
 
@@ -39,12 +38,11 @@ def plot_slices(data, aspect_ratio=1):
         aspect_ratio: Aspect ratio der Axen
     '''
     # minima und maxima von allen punkten finden (also von allen netzen)
-    # eigene Funktion schreiben?
     min_all = pd.concat( [ data[i].points for i in range(0, len(data)) ] ).min()
     max_all = pd.concat( [ data[i].points for i in range(0, len(data)) ] ).max()
     d_all = abs(min_all) + max_all
     plot_range_all = pd.DataFrame([], index=['x','y','z'])
-    plot_range_all = pd.concat([min_all, max_all], axis=1)    #z achse sollte groesseren abstand haben!
+    plot_range_all = pd.concat([min_all, max_all], axis=1)
     plot_range_all.columns = ['min','max']
     plot_range_all['min']['x':'y'] = plot_range_all['min']['x':'y'] - d_all['x':'y']*0.05
     plot_range_all['max']['x':'y'] = plot_range_all['max']['x':'y'] + d_all['x':'y']*0.05
@@ -67,7 +65,6 @@ def plot_slices(data, aspect_ratio=1):
         z_min = min(analysis.points['z'])
         min_z_sph = float((analysis.fit['r'] - analysis.fit['z']) * (-1))
         fig2, ax_single = plt.subplots(2, 1, sharex=True, sharey=True, figsize=(12, 9))
-        #fig2.suptitle(f"{analysis.name}")
 
         ax_single[0].set_aspect(aspect=aspect_ratio)
         ax_single[0].set_ylim([ plot_range_all[col]['z'] for col in plot_range_all.columns ])
@@ -93,12 +90,12 @@ def plot_slices(data, aspect_ratio=1):
             min_z_cs = min(analysis.cross_section[n_slice]['z'])
             label = (f'{analysis.name}')
             if n_slice == '010':
-                ax_single[0].scatter(analysis.cross_section[(n_slice, 'x')], analysis.cross_section[(n_slice, 'z')], s=0.1)#, label=label)
+                ax_single[0].scatter(analysis.cross_section[(n_slice, 'x')], analysis.cross_section[(n_slice, 'z')], s=0.1)
                 ax_all[0].set_title(f"Schnitte durch die X-Z Ebene")
                 ax_all[0].set_xlabel('X [mm]')
                 ax_all[0].scatter(analysis.cross_section[(n_slice, 'x')], analysis.cross_section[(n_slice, 'z')], s=0.1, label=label)
             elif n_slice == '100':
-                ax_single[1].scatter(analysis.cross_section[n_slice]['y'], analysis.cross_section[n_slice]['z'], s=0.1)#, label=label)
+                ax_single[1].scatter(analysis.cross_section[n_slice]['y'], analysis.cross_section[n_slice]['z'], s=0.1)
                 ax_all[1].set_title(f"Schnitte durch die Y-Z Ebene")
                 ax_all[1].set_xlabel('Y [mm]')
                 ax_all[1].scatter(analysis.cross_section[(n_slice, 'y')], analysis.cross_section[(n_slice ,'z')], s=0.1, label=label)
@@ -130,8 +127,20 @@ def plot_contour(data):
     vmin = data.points['z'].min()
     vmax = data.points['z'].max()
     plot_val = np.linspace(vmin, vmax, levels, endpoint=True)
-    cntr = ax.tricontourf(data.points['x'][::500],data.points['y'][::500],data.points['z'][::500], plot_val, vmin=vmin, vmax=vmax, extend='both')#, cmap='')
-    ax.tricontour(data.points['x'][::50],data.points['y'][::50],data.points['z'][::50], levels,  linewidths=0.2, alpha=0.7, colors='black')
+    cntr = ax.tricontourf(data.points['x'][::500],
+                          data.points['y'][::500],
+                          data.points['z'][::500],
+                          plot_val,
+                          vmin=vmin,
+                          vmax=vmax,
+                          extend='both')#, cmap='')
+    ax.tricontour(data.points['x'][::50],
+                  data.points['y'][::50],
+                  data.points['z'][::50],
+                  levels,
+                  linewidths=0.2,
+                  alpha=0.7,
+                  colors='black')
     cbar = fig.colorbar(cntr, ax=ax, label='Z [mm]')
     output_name = pathlib.Path.cwd().joinpath('output').joinpath(data.name + '_contour.png')
     fig.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
@@ -141,7 +150,6 @@ def plot_circle(x,y, radius=0.15):
     '''
         Erzeugt die Kreise für plot_slices().
     '''
-
     from matplotlib.patches import Circle
     from matplotlib.patheffects import withStroke
     circle = Circle((x,y), radius, clip_on=True, zorder=10, linewidth=1,
@@ -151,19 +159,18 @@ def plot_circle(x,y, radius=0.15):
     return circle
 
 def read_pkl():
+    '''
+        Lade die Pickle-Files
+    '''
     from dc_object import DataCraterAnalysis
-    path = pathlib.Path.cwd()
+    path = pathlib.Path.cwd().joinpath('output')
     files = sorted([a for a in path.glob('*.pkl')])
     c_a_list = []
     for f in files:
         c_a_list.append(pickle.load(open(f, 'rb')))
     return c_a_list
 
-def report(data):
-    generate_report.generate_report(data)
-
 if __name__ == '__main__':
-    #files = sorted(glob.glob('*.stl'))
     path = pathlib.Path.cwd()
     in_dir = path.joinpath('input')
     out_dir = path.joinpath('output')
@@ -179,6 +186,7 @@ if __name__ == '__main__':
         print(f'processing {mesh_name}')
         output_name = mesh_name + '.csv'
         mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(str(file))
+        # Mesh export (stl)
         mesh.export(out_dir.joinpath(f'{mesh_name}_transformed.stl'))
         crater_analysis.name = mesh_name
         crater_analysis.points = mesh_points
@@ -187,7 +195,9 @@ if __name__ == '__main__':
             cs = slice_mesh(mesh, direction=plane)
             crater_analysis.cross_section = pd.concat([crater_analysis.cross_section, cs], axis=1)
             crater_analysis.cross_section.to_csv(out_dir.joinpath(f'{mesh_name}_cs.csv'), index=False)
+        # DataClass export (pkl)
         pickle.dump( crater_analysis, open(out_dir.joinpath(mesh_name+'.pkl'),'wb'))
+        # CS export (csv)
         crater_analysis_list.append(crater_analysis)
         plot_contour(crater_analysis)
     plot_slices(crater_analysis_list)

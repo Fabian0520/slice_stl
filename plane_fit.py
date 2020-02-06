@@ -1,4 +1,3 @@
-#from timeit import default_timer as timer
 import trimesh
 import numpy as np
 import pandas as pd
@@ -56,5 +55,3 @@ def prepare_and_fit(mesh_file):
     #-----------------------------------------------------------------------------------------------------------------
 
     return mesh, mesh_points, fit_parameters
-
-#test.export('fit.stl')
