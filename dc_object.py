@@ -20,7 +20,10 @@ class DataCraterAnalysis:
                                repr=False)
     # mesh einfügen?
     def __repr__(self):
-        number_of_slices = len(self.cross_section)
+        if hasattr(self.cross_section.columns, 'levels'):
+            slices = self.cross_section.columns.levels[0].to_list()
+        else:
+            slices = 'None'
         name = self.name
-        return  f'Name: {name}, Number of slices: {number_of_slices}'
+        return  f'Name: {name}, {len(slices)} Slices: {slices}'
 

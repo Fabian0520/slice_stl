@@ -90,7 +90,6 @@ def plot_slices(data, aspect_ratio=1):
         ax3.grid(linewidth=0.2, alpha=0.7, color='black')
 
         for n_slice in analysis.cross_section.columns.levels[0]:
-            import ipdb; ipdb.set_trace()
             min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
             min_z = min(analysis.points['z'])
             min_z_cs = min(analysis.cross_section[n_slice]['z'])
