@@ -179,13 +179,14 @@ if __name__ == '__main__':
         print(f'processing {mesh_name}')
         output_name = mesh_name + '.csv'
         mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(str(file))
-        #mesh.export('name.stl')
+        mesh.export(out_dir.joinpath(f'{mesh_name}_transformed.stl'))
         crater_analysis.name = mesh_name
         crater_analysis.points = mesh_points
         crater_analysis.fit = fit_parameters
         for plane in [[0,1,0],[1,0,0]]:
             cs = slice_mesh(mesh, direction=plane)
             crater_analysis.cross_section = pd.concat([crater_analysis.cross_section, cs], axis=1)
+            crater_analysis.cross_section.to_csv(out_dir.joinpath(f'{mesh_name}_cs.csv'), index=False)
         pickle.dump( crater_analysis, open(out_dir.joinpath(mesh_name+'.pkl'),'wb'))
         crater_analysis_list.append(crater_analysis)
         plot_contour(crater_analysis)
