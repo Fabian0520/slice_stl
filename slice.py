@@ -21,11 +21,12 @@ def slice_mesh(mesh, location=[0,0,0], direction=[0,1,0]):
     '''
 
     cross_section = mesh.section(plane_origin=location, plane_normal=direction)
-    columns = ['x', 'y', 'z']
+    # erzeugt einen String aus den Listen für direction und location
+    dir_string = ''.join(map(str, direction))
+    loc_string = ''.join(map(str, location))
+    columns = pd.MultiIndex.from_product([[dir_string],['x', 'y', 'z']])
     # sort_values(['x']), damit beim lineplot die Punkte richtig liegen.
-    cross_section_df = pd.DataFrame(cross_section.vertices, columns=columns).sort_values(by=['x']).reset_index(drop=True)
-    loc_dir = pd.DataFrame([location,direction], index=['location','direction'], columns=['x','y','z'])
-    cross_section_df = pd.concat([loc_dir,cross_section_df])
+    cross_section_df = pd.DataFrame(cross_section.vertices, columns=columns).reset_index(drop=True).sort_values(by=(dir_string,'x'))
 
     return cross_section_df
 
@@ -63,7 +64,7 @@ def plot_slices(data, aspect_ratio=1):
     ax_all[1].grid(linewidth=0.2, alpha=0.7, color='black')
 
     for analysis in data:
-        z_min = min(analysis.points['z'][2:])
+        z_min = min(analysis.points['z'])
         min_z_sph = float((analysis.fit['r'] - analysis.fit['z']) * (-1))
         fig2 = plt.figure(figsize=(11.6929, 8.26772))
         fig2.suptitle(f"{analysis.name}")
@@ -88,20 +89,22 @@ def plot_slices(data, aspect_ratio=1):
         ax3.add_artist(plot_circle(0, analysis.fit['z'], analysis.fit['r']))
         ax3.grid(linewidth=0.2, alpha=0.7, color='black')
 
-        for n_slice in range(0,len(analysis.cross_section)):
+        for n_slice in analysis.cross_section.columns.levels[0]:
+            import ipdb; ipdb.set_trace()
             min_z_sph = float(analysis.fit['r'] - analysis.fit['z'])
-            min_z = min(analysis.points['z'][2:])
+            min_z = min(analysis.points['z'])
+            min_z_cs = min(analysis.cross_section[n_slice]['z'])
             label = (f'{analysis.name} \nmin_z = {min_z:6.2f} mm \nmin_z_sph = {min_z_sph:6.2f} mm')
-            if np.round(analysis.cross_section[n_slice]['x'][3]) == 0:
-                ax2.scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
+            if n_slice == '010':
+                ax2.scatter(analysis.cross_section[(n_slice, 'x')], analysis.cross_section[(n_slice, 'z')], s=0.1)#, label=label)
                 ax_all[0].set_title(f"Schnitte durch die Y-Z Ebene")
-                ax_all[0].set_xlabel('Y [mm]')
-                ax_all[0].scatter(analysis.cross_section[n_slice]['y'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
-            elif np.round(analysis.cross_section[n_slice]['y'][3]) == 0:
-                ax3.scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1)#, label=label)
+                ax_all[0].set_xlabel('X [mm]')
+                ax_all[0].scatter(analysis.cross_section[(n_slice, 'x')], analysis.cross_section[(n_slice, 'z')], s=0.1, label=label)
+            elif n_slice == '100':
+                ax3.scatter(analysis.cross_section[n_slice]['y'], analysis.cross_section[n_slice]['z'], s=0.1)#, label=label)
                 ax_all[1].set_title(f"Schnitte durch die X-Z Ebene")
-                ax_all[1].set_xlabel('X [mm]')
-                ax_all[1].scatter(analysis.cross_section[n_slice]['x'][2:], analysis.cross_section[n_slice]['z'][2:], s=0.1, label=label)
+                ax_all[1].set_xlabel('Y [mm]')
+                ax_all[1].scatter(analysis.cross_section[(n_slice, 'y')], analysis.cross_section[(n_slice ,'z')], s=0.1, label=label)
 
         ax_all[1].legend(markerscale=6,
                       scatterpoints=1,
@@ -185,7 +188,7 @@ if __name__ == '__main__':
         crater_analysis.fit = fit_parameters
         for plane in [[0,1,0],[1,0,0]]:
             cs = slice_mesh(mesh, direction=plane)
-            crater_analysis.cross_section.append(cs)
+            crater_analysis.cross_section = pd.concat([crater_analysis.cross_section, cs], axis=1)
         pickle.dump( crater_analysis, open(out_dir.joinpath(mesh_name+'.pkl'),'wb'))
         crater_analysis_list.append(crater_analysis)
         plot_contour(crater_analysis)

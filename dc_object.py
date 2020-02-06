@@ -11,7 +11,7 @@ class DataCraterAnalysis:
                                  compare=False,
                                  repr=False)
     # anderer Datentyp, damit man mehrere slices drin speichern kann
-    cross_section: list() = field(default_factory=list,
+    cross_section: pd.DataFrame = field(default=pd.DataFrame(),
                                  compare=False,
                                  repr=False)
     fit: pd.DataFrame = field(default=pd.DataFrame(),
