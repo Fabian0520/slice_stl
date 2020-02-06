@@ -4,7 +4,7 @@
 
 {% block content %}
 {% for item in content%}
-<h1>Auswertung von Versuch {{ item.name }} </h1>
+<h4>Auswertung von Versuch {{ item.name }} </h1>
     <p>
         <table>
           <tr>
@@ -38,7 +38,7 @@
     <p class="page_break"></p>
 {% endfor %}
 
-<h1>Gesamtplots</h1>
+<h4>Gesamtplots</h1>
     <p>
        <img class="center" src="{{ image_all }}" width="650" alt=""/> 
     </p>
