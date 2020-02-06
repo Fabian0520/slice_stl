@@ -27,7 +27,9 @@ def generate_report(crater_analysis_list):
         sph_min = abs(float((scan.fit['r'] - scan.fit['z']) * (-1)))
         radius = abs(float(np.sqrt(scan.fit['r']**2 - scan.fit['z']**2)*2))
         min_xz = abs(scan.cross_section['010']['z'][2:].min())
+        max_xz = abs(scan.cross_section['010']['z'][2:].max())
         min_yz = abs(scan.cross_section['100']['z'][2:].min())
+        max_yz = abs(scan.cross_section['100']['z'][2:].max())
         image_files = sorted([a for a in out_dir.glob(f'{name}*.png')])
         for img in image_files:
             if 'contour' in img.name:
@@ -42,7 +44,9 @@ def generate_report(crater_analysis_list):
                         'glob_min' : f'{glob_min:3.2f} mm',
                         'glob_max' : f'{glob_max:3.2f} mm',
                         'min_xz' : f'{min_xz:3.2f} mm',
+                        'max_xz' : f'{max_xz:3.2f} mm',
                         'min_yz' : f'{min_yz:3.2f} mm',
+                        'max_yz' : f'{max_yz:3.2f} mm',
                         'sph_min' : f'{sph_min:3.2f} mm',
                         'radius' : f'{radius:3.2f} mm',
                         'cross_sections' : list(),
