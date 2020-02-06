@@ -9,3 +9,6 @@
 *.ipynb
 *.pkl
 *.pdf
+/__pycache__
+/input
+/output
