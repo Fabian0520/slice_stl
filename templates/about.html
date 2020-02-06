@@ -8,16 +8,16 @@
     <p>
         <table>
           <tr>
-            <td>Tiefster Punkt im Scan</th>
-            <td>{{ item.glob_min }}</th>
+            <td>Tiefster Punkt im Scan</td>
+            <td>{{ item.glob_min }}</td>
           </tr>
           <tr>
-            <td>Tiefster Punkt in XZ Ebene</th>
-            <td>{{ item.min_xz }}</th>
+            <td>Tiefster Punkt in XZ Ebene</td>
+            <td>{{ item.min_xz }}</td>
           </tr>
           <tr>
-            <td>Tiefster Punkt in YZ Ebene</th>
-            <td>{{ item.min_yz }}</th>
+            <td>Tiefster Punkt in YZ Ebene</td>
+            <td>{{ item.min_yz }}</td>
           </tr>
           <tr>
             <td>Tiefster Punkt gefittete Kugel</td>
@@ -42,5 +42,25 @@
     <p>
        <img class="center" src="{{ image_all }}" width="650" alt=""/> 
     </p>
+    <table>
+        <tr>
+            <th>Name:</th>
+            <th>a</th>
+            <th>b</th>
+            <th>c</th>
+            <th>d</th>
+            <th>e</th>
+        </tr>
+        {% for item in content %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.glob_min }}</td>
+            <td>{{ item.min_xz }}</td>
+            <td>{{ item.min_yz }}</td>
+            <td>{{ item.sph_min }}</td>
+            <td>{{ item.radius }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 
 {% endblock %}
