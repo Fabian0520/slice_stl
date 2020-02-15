@@ -107,12 +107,12 @@ def plot_slices(data, aspect_ratio=1):
                       fancybox=True, ncol=3)
 
         fig2.tight_layout()
-        output_name = pathlib.Path.cwd().joinpath('output').joinpath(analysis.name + '.png')
+        output_name = pathlib.Path.cwd().joinpath('data').joinpath('output').joinpath(analysis.name + '.png')
         fig2.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
         plt.close(fig2)
     #-------------- all xz ------------------------------------------------------------
     fig_all.tight_layout()
-    output_name = pathlib.Path.cwd().joinpath('output').joinpath('all.png')
+    output_name = pathlib.Path.cwd().joinpath('data').joinpath('output').joinpath('all.png')
     fig_all.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig_all)
 
@@ -142,7 +142,7 @@ def plot_contour(data):
                   alpha=0.7,
                   colors='black')
     cbar = fig.colorbar(cntr, ax=ax, label='Z [mm]')
-    output_name = pathlib.Path.cwd().joinpath('output').joinpath(data.name + '_contour.png')
+    output_name = pathlib.Path.cwd().joinpath('data').joinpath('output').joinpath(data.name + '_contour.png')
     fig.savefig(str(output_name), orientation='landscape', papertype='a4', dpi=600)
     plt.close(fig)
 
@@ -163,7 +163,7 @@ def read_pkl():
         Lade die Pickle-Files
     '''
     from dc_object import DataCraterAnalysis
-    path = pathlib.Path.cwd().joinpath('output')
+    path = pathlib.Path.cwd().joinpath('data').joinpath('output')
     files = sorted([a for a in path.glob('*.pkl')])
     c_a_list = []
     for f in files:
@@ -172,8 +172,8 @@ def read_pkl():
 
 if __name__ == '__main__':
     path = pathlib.Path.cwd()
-    in_dir = path.joinpath('input')
-    out_dir = path.joinpath('output')
+    in_dir = path.joinpath('data').joinpath('input')
+    out_dir = path.joinpath('data').joinpath('output')
     if in_dir.exists() == False:
         in_dir.mkdir()
     if out_dir.exists() == False:

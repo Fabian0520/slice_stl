@@ -7,7 +7,7 @@ import numpy as np
 
 def generate_report(crater_analysis_list):
     path = pathlib.Path.cwd()
-    out_dir = path.joinpath('output')
+    out_dir = path.joinpath('data').joinpath('output')
     if out_dir.exists() == False:
         out_dir.mkdir()
     file_loader = FileSystemLoader('templates')
