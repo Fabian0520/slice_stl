@@ -43,21 +43,22 @@ def prepare_and_fit(mesh_file):
     #                                       fit sphere to points not in plane
     # generate new points, after transform
     mesh_points = pd.DataFrame(mesh.vertices, columns=["x", "y", "z"])
-    # take only points with z<-1.0 *** wert noch automatisch eryeugen
-    mask = mesh_points["z"] < -1.0
+    # take only points with z<-mesh_points["z"].min() / 2
+    mask = mesh_points["z"] < mesh_points["z"].min() / 2
     sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(mesh_points[mask])
-    # Maske "Abstand Punkte von Kugel kleiner x" erzeugen und noch mal fitten (x10)
-    for i in range(0, 10):
+    # Maske "Abstand Punkte von Kugel kleiner x" erzeugen und noch mal fitten
+    for i in range(2, 10):
         # Distance between points and sphere surface
         mesh_points["dist_sph"] = np.absolute(
             np.linalg.norm(mesh_points.loc[:, "x":"z"] - sph_fit_c, axis=1.0)
             - sph_fit_r
         )
-        mask = mesh_points["dist_sph"] < 0.5  # 1.0 - (i/60)
+        mask = mesh_points["dist_sph"] < mesh_points["dist_sph"][mask].mean()*2
         sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(
             mesh_points.loc[:, "x":"z"][mask]
         )
-    # import ipdb; ipdb.set_trace()
+        # new mask
+        mask = mesh_points["z"] < mesh_points["z"].min() / i
 
     # aligning sphere and mesh
     # trimesh.transformations.compose_matrix()
