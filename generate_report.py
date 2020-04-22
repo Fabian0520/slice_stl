@@ -13,7 +13,7 @@ def generate_report(crater_analysis_list):
         out_dir.mkdir()
     file_loader = FileSystemLoader("templates")
     env = Environment(loader=file_loader)
-    template = env.get_template("about.html")
+    template = env.get_template("report_template.html")
     all_names = list()
     single_plots = list()
 
