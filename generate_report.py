@@ -1,9 +1,16 @@
 #!./venv/bin/python
 
-from jinja2 import Environment, FileSystemLoader
-import pdfkit
 import pathlib
+
 import numpy as np
+from jinja2 import Environment, FileSystemLoader
+
+import pdfkit
+
+
+def volume_crater(h, r):
+    volume_sphere_segment = np.square(h) * np.pi / 3 * (3 * r - np.abs(h))
+    return volume_sphere_segment
 
 
 def generate_report(crater_analysis_list):
@@ -32,6 +39,7 @@ def generate_report(crater_analysis_list):
         min_yz = abs(scan.cross_section["100"]["z"][2:].min())
         max_yz = abs(scan.cross_section["100"]["z"][2:].max())
         image_files = sorted([a for a in out_dir.glob(f"{name}*.png")])
+        v_crater = volume_crater(sph_min, radius)
         for img in image_files:
             if "contour" in img.name:
                 contour_image = out_dir.joinpath(img)
@@ -55,6 +63,7 @@ def generate_report(crater_analysis_list):
                 "cross_sections": list(),
                 "cs_image": cs_image,
                 "contour_image": contour_image,
+                "volume_crater": f"{v_crater:4.2f} mm^3",
             }
         )
 

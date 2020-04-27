@@ -70,6 +70,7 @@
             <th>Höchster Punkt in XZ Ebene</th>
             <th>Höchster Punkt in YZ Ebene</th>
             <th>Durchmesser Krater</th>
+            <th>Volumen Krater</th>
         </tr>
         {% for item in content %}
         <tr>
@@ -78,6 +79,7 @@
             <td>{{ item.max_xz }}</td>
             <td>{{ item.max_yz }}</td>
             <td>{{ item.radius }}</td>
+            <td>{{ item.volume_crater }}</td>
         </tr>
         {% endfor %}
     </table>
