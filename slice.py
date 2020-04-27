@@ -221,10 +221,10 @@ def read_pkl():
 
     path = pathlib.Path.cwd().joinpath("output")
     files = sorted([a for a in path.glob("*.pkl")])
-    c_a_list = []
+    crater_analysis_list = []
     for f in files:
-        c_a_list.append(pickle.load(open(f, "rb")))
-    return c_a_list
+        crater_analysis_list.append(pickle.load(open(f, "rb")))
+    return crater_analysis_list
 
 
 if __name__ == "__main__":

@@ -13,6 +13,12 @@ def volume_crater(h, r):
     return volume_sphere_segment
 
 
+def highest_point_crater(points, r_crater):
+    mask = np.sqrt(points['x']**2 + points['y']**2) < (1.3 * r_crater)
+    hp_crater = max(points['z'][mask])
+    return hp_crater
+
+
 def generate_report(crater_analysis_list):
     path = pathlib.Path.cwd()
     out_dir = path.joinpath("output")
@@ -30,7 +36,7 @@ def generate_report(crater_analysis_list):
         contour_image = ""
         all_names.append(name)  # für all plots
         points = scan.points
-        glob_min = abs(min(points[2:]["z"]))
+        glob_min = abs(min(points[2:]["z"]))  # warum 2: ?
         glob_max = abs(max(points[2:]["z"]))
         sph_min = abs(float((scan.fit["r"] - scan.fit["z"]) * (-1)))
         radius = abs(float(np.sqrt(scan.fit["r"] ** 2 - scan.fit["z"] ** 2) * 2))
@@ -40,6 +46,7 @@ def generate_report(crater_analysis_list):
         max_yz = abs(scan.cross_section["100"]["z"][2:].max())
         image_files = sorted([a for a in out_dir.glob(f"{name}*.png")])
         v_crater = volume_crater(sph_min, radius)
+        max_crater = highest_point_crater(points[2:], radius)
         for img in image_files:
             if "contour" in img.name:
                 contour_image = out_dir.joinpath(img)
@@ -64,6 +71,7 @@ def generate_report(crater_analysis_list):
                 "cs_image": cs_image,
                 "contour_image": contour_image,
                 "volume_crater": f"{v_crater:4.2f} mm^3",
+                "max_crater": f"{max_crater:3.2f} mm",
             }
         )
 
@@ -72,3 +80,4 @@ def generate_report(crater_analysis_list):
     css_path = path / "templates" / "style.css"
     output = template.render(content=single_plots, image_all=image_all[0].resolve())
     pdfkit.from_string(output, out_dir.joinpath("report.pdf"), css=css_path)
+    print(single_plots)
