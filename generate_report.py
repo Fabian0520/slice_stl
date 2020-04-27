@@ -1,5 +1,6 @@
 #!./venv/bin/python
 
+import csv
 import pathlib
 
 import numpy as np
@@ -14,8 +15,8 @@ def volume_crater(h, r):
 
 
 def highest_point_crater(points, r_crater):
-    mask = np.sqrt(points['x']**2 + points['y']**2) < (1.3 * r_crater)
-    hp_crater = max(points['z'][mask])
+    mask = np.sqrt(points["x"] ** 2 + points["y"] ** 2) < (1.3 * r_crater)
+    hp_crater = max(points["z"][mask])
     return hp_crater
 
 
@@ -29,6 +30,7 @@ def generate_report(crater_analysis_list):
     template = env.get_template("report_template.html")
     all_names = list()
     single_plots = list()
+    csv_report_data = list()
 
     for scan in crater_analysis_list:
         cs_image = list()
@@ -74,10 +76,29 @@ def generate_report(crater_analysis_list):
                 "max_crater": f"{max_crater:3.2f} mm",
             }
         )
+        csv_report_data.append(
+            {
+                "Name": name,
+                "globales Minimum": f"{glob_min:3.2f} mm",
+                "tiefster Punkt Kugel": f"{sph_min:3.2f} mm",
+                "tiefster Punkt XZ-Schnitt": f"{min_xz:3.2f} mm",
+                "tiefster Punkt YZ-Schnitt": f"{min_yz:3.2f} mm",
+                "globales Maximum": f"{glob_max:3.2f} mm",
+                "höchster Punkt des Kraters": f"{max_crater:3.2f} mm",
+                "höchster Punkt in XZ-Schnitt": f"{max_xz:3.2f} mm",
+                "höchster Punkt in YZ-Schnitt": f"{max_yz:3.2f} mm",
+                "Radius Krater (z=0)": f"{radius:3.2f} mm",
+                "Volumen des Kraters (berechnet aus Kugel)": f"{v_crater:4.2f} mm^3",
+            }
+        )
 
     image_all = [a for a in out_dir.glob(f"all.png")]
 
     css_path = path / "templates" / "style.css"
     output = template.render(content=single_plots, image_all=image_all[0].resolve())
     pdfkit.from_string(output, out_dir.joinpath("report.pdf"), css=css_path)
-    print(single_plots)
+    # write report-data to csv file:
+    with open(f"{out_dir}/report.csv", "w", encoding="utf8", newline="") as output_file:
+        fc = csv.DictWriter(output_file, fieldnames=csv_report_data[0].keys(), )
+        fc.writeheader()
+        fc.writerows(csv_report_data)
