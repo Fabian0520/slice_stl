@@ -40,13 +40,15 @@ def plot_slices(data, aspect_ratio=1):
         Plottet die Schnitte durch die Netze. fig2 sind die Einzelplots, fig_all sind
         die Übersihtsplots (falls mehrer Slices übergeben werden).
 
-        data: zu plottende Date. [pd.DataFrame]
+        data: zu plottende Daten in einer Liste. [pd.DataFrame]
         aspect_ratio: Aspect ratio der Axen
     """
     # minima und maxima von allen punkten finden (also von allen netzen)
     min_all = pd.concat([data[i].points for i in range(0, len(data))]).min()
     max_all = pd.concat([data[i].points for i in range(0, len(data))]).max()
+    # "Spanne" der Daten (größter und kleinster Wert)
     d_all = abs(min_all) + max_all
+    # Grenzen für den Plot definieren (aus d_all mit Faktor multipliziert)
     plot_range_all = pd.DataFrame([], index=["x", "y", "z"])
     plot_range_all = pd.concat([min_all, max_all], axis=1)
     plot_range_all.columns = ["min", "max"]
