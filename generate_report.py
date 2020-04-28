@@ -10,17 +10,28 @@ import pdfkit
 
 
 def volume_crater(h, r):
+    """
+    Berechnet das Volumen des Kugelsegments unterhalb der Nullpunksebene.
+    """
     volume_sphere_segment = np.square(h) * np.pi / 3 * (3 * r - np.abs(h))
     return volume_sphere_segment
 
 
 def highest_point_crater(points, r_crater):
+    """
+    Sucht den höchsten Punkt des Kraterrandes, nicht den höchsten Punkt des Scans.
+    Kraterrand ist mit 1.3*r_crater definiert.
+    """
     mask = np.sqrt(points["x"] ** 2 + points["y"] ** 2) < (1.3 * r_crater)
     hp_crater = max(points["z"][mask])
     return hp_crater
 
 
 def generate_report(crater_analysis_list):
+    """
+    Generiert (führt yusammen) die Daten für den PDF-Report und den csv-Report.
+    Im Zweiten Teil werden das PDF und das CSV erzeugt.
+    """
     path = pathlib.Path.cwd()
     out_dir = path.joinpath("output")
     if out_dir.exists() is False:
@@ -38,17 +49,17 @@ def generate_report(crater_analysis_list):
         contour_image = ""
         all_names.append(name)  # für all plots
         points = scan.points
-        glob_min = abs(min(points[2:]["z"]))  # warum 2: ?
-        glob_max = abs(max(points[2:]["z"]))
+        glob_min = abs(min(points["z"]))
+        glob_max = abs(max(points["z"]))
         sph_min = abs(float((scan.fit["r"] - scan.fit["z"]) * (-1)))
         radius = abs(float(np.sqrt(scan.fit["r"] ** 2 - scan.fit["z"] ** 2) * 2))
-        min_xz = abs(scan.cross_section["010"]["z"][2:].min())
-        max_xz = abs(scan.cross_section["010"]["z"][2:].max())
-        min_yz = abs(scan.cross_section["100"]["z"][2:].min())
-        max_yz = abs(scan.cross_section["100"]["z"][2:].max())
+        min_xz = abs(scan.cross_section["010"]["z"].min())
+        max_xz = abs(scan.cross_section["010"]["z"].max())
+        min_yz = abs(scan.cross_section["100"]["z"].min())
+        max_yz = abs(scan.cross_section["100"]["z"].max())
         image_files = sorted([a for a in out_dir.glob(f"{name}*.png")])
         v_crater = volume_crater(sph_min, radius)
-        max_crater = highest_point_crater(points[2:], radius)
+        max_crater = highest_point_crater(points, radius)
         for img in image_files:
             if "contour" in img.name:
                 contour_image = out_dir.joinpath(img)
@@ -79,16 +90,16 @@ def generate_report(crater_analysis_list):
         csv_report_data.append(
             {
                 "Name": name,
-                "globales Minimum": f"{glob_min:3.2f} mm",
-                "tiefster Punkt Kugel": f"{sph_min:3.2f} mm",
-                "tiefster Punkt XZ-Schnitt": f"{min_xz:3.2f} mm",
-                "tiefster Punkt YZ-Schnitt": f"{min_yz:3.2f} mm",
-                "globales Maximum": f"{glob_max:3.2f} mm",
-                "höchster Punkt des Kraters": f"{max_crater:3.2f} mm",
-                "höchster Punkt in XZ-Schnitt": f"{max_xz:3.2f} mm",
-                "höchster Punkt in YZ-Schnitt": f"{max_yz:3.2f} mm",
-                "Radius Krater (z=0)": f"{radius:3.2f} mm",
-                "Volumen des Kraters (berechnet aus Kugel)": f"{v_crater:4.2f} mm^3",
+                "globales Minimum [mm]": f"{glob_min:3.2f}",
+                "tiefster Punkt Kugel [mm]": f"{sph_min:3.2f}",
+                "tiefster Punkt XZ-Schnitt [mm]": f"{min_xz:3.2f}",
+                "tiefster Punkt YZ-Schnitt [mm]": f"{min_yz:3.2f}",
+                "globales Maximum [mm]": f"{glob_max:3.2f}",
+                "höchster Punkt des Kraters [mm]": f"{max_crater:3.2f}",
+                "höchster Punkt in XZ-Schnitt [mm]": f"{max_xz:3.2f}",
+                "höchster Punkt in YZ-Schnitt [mm]": f"{max_yz:3.2f}",
+                "Radius Krater (z=0) [mm]": f"{radius:3.2f}",
+                "Volumen des Kraters (berechnet aus Kugel) [mm^3]": f"{v_crater:4.2f}",
             }
         )
 
