@@ -52,7 +52,7 @@ def generate_report(crater_analysis_list):
         glob_min = abs(min(points["z"]))
         glob_max = abs(max(points["z"]))
         sph_min = abs(float((scan.fit["r"] - scan.fit["z"]) * (-1)))
-        radius = abs(float(np.sqrt(scan.fit["r"] ** 2 - scan.fit["z"] ** 2) * 2))
+        radius = abs(float(np.sqrt(scan.fit["r"] ** 2 - scan.fit["z"] ** 2)))
         min_xz = abs(scan.cross_section["010"]["z"].min())
         max_xz = abs(scan.cross_section["010"]["z"].max())
         min_yz = abs(scan.cross_section["100"]["z"].min())
@@ -79,7 +79,7 @@ def generate_report(crater_analysis_list):
                 "min_yz": f"{min_yz:3.2f} mm",
                 "max_yz": f"{max_yz:3.2f} mm",
                 "sph_min": f"{sph_min:3.2f} mm",
-                "radius": f"{radius:3.2f} mm",
+                "durchmesser": f"{radius*2:3.2f} mm",
                 "cross_sections": list(),
                 "cs_image": cs_image,
                 "contour_image": contour_image,
@@ -98,7 +98,7 @@ def generate_report(crater_analysis_list):
                 "höchster Punkt des Kraters [mm]": f"{max_crater:3.2f}",
                 "höchster Punkt in XZ-Schnitt [mm]": f"{max_xz:3.2f}",
                 "höchster Punkt in YZ-Schnitt [mm]": f"{max_yz:3.2f}",
-                "Radius Krater (z=0) [mm]": f"{radius:3.2f}",
+                "Durchmesser Krater (z=0) [mm]": f"{radius*2:3.2f}",
                 "Volumen des Kraters (berechnet aus Kugel) [mm^3]": f"{v_crater:4.2f}",
             }
         )
