@@ -22,7 +22,7 @@ def highest_point_crater(points, r_crater):
     Sucht den höchsten Punkt des Kraterrandes, nicht den höchsten Punkt des Scans.
     Kraterrand ist mit 1.3*r_crater definiert.
     """
-    mask = np.sqrt(points["x"] ** 2 + points["y"] ** 2) < (1.3 * r_crater)
+    mask = np.sqrt(points["x"] ** 2 + points["y"] ** 2) < (1.4 * r_crater)
     hp_crater = max(points["z"][mask])
     return hp_crater
 
@@ -72,34 +72,34 @@ def generate_report(crater_analysis_list):
         single_plots.append(
             {
                 "name": name,
-                "glob_min": f"{glob_min:3.2f} mm",
-                "glob_max": f"{glob_max:3.2f} mm",
-                "min_xz": f"{min_xz:3.2f} mm",
-                "max_xz": f"{max_xz:3.2f} mm",
-                "min_yz": f"{min_yz:3.2f} mm",
-                "max_yz": f"{max_yz:3.2f} mm",
-                "sph_min": f"{sph_min:3.2f} mm",
-                "durchmesser": f"{radius*2:3.2f} mm",
+                "glob_min": f"{glob_min:3.1f} mm",
+                "glob_max": f"{glob_max:3.1f} mm",
+                "min_xz": f"{min_xz:3.1f} mm",
+                "max_xz": f"{max_xz:3.1f} mm",
+                "min_yz": f"{min_yz:3.1f} mm",
+                "max_yz": f"{max_yz:3.1f} mm",
+                "sph_min": f"{sph_min:3.1f} mm",
+                "durchmesser": f"{radius*2:3.1f} mm",
                 "cross_sections": list(),
                 "cs_image": cs_image,
                 "contour_image": contour_image,
-                "volume_crater": f"{v_crater:4.2f} mm^3",
-                "max_crater": f"{max_crater:3.2f} mm",
+                "volume_crater": f"{v_crater:4.1f} mm^3",
+                "max_crater": f"{max_crater:3.1f} mm",
             }
         )
         csv_report_data.append(
             {
                 "Name": name,
-                "globales Minimum [mm]": f"{glob_min:3.2f}",
-                "tiefster Punkt Kugel [mm]": f"{sph_min:3.2f}",
-                "tiefster Punkt XZ-Schnitt [mm]": f"{min_xz:3.2f}",
-                "tiefster Punkt YZ-Schnitt [mm]": f"{min_yz:3.2f}",
-                "globales Maximum [mm]": f"{glob_max:3.2f}",
-                "höchster Punkt des Kraters [mm]": f"{max_crater:3.2f}",
-                "höchster Punkt in XZ-Schnitt [mm]": f"{max_xz:3.2f}",
-                "höchster Punkt in YZ-Schnitt [mm]": f"{max_yz:3.2f}",
-                "Durchmesser Krater (z=0) [mm]": f"{radius*2:3.2f}",
-                "Volumen des Kraters (berechnet aus Kugel) [mm^3]": f"{v_crater:4.2f}",
+                "globales Minimum [mm]": f"{glob_min:3.1f}",
+                "tiefster Punkt Kugel [mm]": f"{sph_min:3.1f}",
+                "tiefster Punkt XZ-Schnitt [mm]": f"{min_xz:3.1f}",
+                "tiefster Punkt YZ-Schnitt [mm]": f"{min_yz:3.1f}",
+                "globales Maximum [mm]": f"{glob_max:3.1f}",
+                "höchster Punkt des Kraters [mm]": f"{max_crater:3.1f}",
+                "höchster Punkt in XZ-Schnitt [mm]": f"{max_xz:3.1f}",
+                "höchster Punkt in YZ-Schnitt [mm]": f"{max_yz:3.1f}",
+                "Durchmesser Krater (z=0) [mm]": f"{radius*2:3.1f}",
+                "Volumen des Kraters (berechnet aus Kugel) [mm^3]": f"{v_crater:4.1f}",
             }
         )
 
