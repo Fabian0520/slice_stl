@@ -1,6 +1,6 @@
-import trimesh
 import numpy as np
 import pandas as pd
+import trimesh
 
 
 def prepare_and_fit(mesh_file):
@@ -44,24 +44,30 @@ def prepare_and_fit(mesh_file):
     # generate new points, after transform
     mesh_points = pd.DataFrame(mesh.vertices, columns=["x", "y", "z"])
     # take only points with z<-mesh_points["z"].min() / 2
-    mask = mesh_points["z"] < mesh_points["z"].min() / 2
-    sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(mesh_points[mask])
+    mask_subzero = mesh_points["z"] < mesh_points["z"].min() / 2
+    sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(
+        mesh_points[mask_subzero]
+    )
     # Maske "Abstand Punkte von Kugel kleiner x" erzeugen und noch mal fitten
-    for i in range(2, 10):
+    for i in range(1, 10):
         # Distance between points and sphere surface
-        mesh_points["dist_sph"] = np.absolute(
-            np.linalg.norm(mesh_points.loc[:, "x":"z"] - sph_fit_c, axis=1.0)
+        mesh_points["dist_sph"] = abs(
+            np.linalg.norm((mesh_points.loc[:, "x":"z"] - sph_fit_c), axis=1)
             - sph_fit_r
         )
-        mask = mesh_points["dist_sph"] < mesh_points["dist_sph"][mask].mean()*2
-        sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(
-            mesh_points.loc[:, "x":"z"][mask]
-        )
-        # new mask
-        mask = mesh_points["z"] < mesh_points["z"].min() / i
 
-    # aligning sphere and mesh
-    # trimesh.transformations.compose_matrix()
+        # Mask Points near the sphere
+        mask_sph = abs(mesh_points["dist_sph"]) < 2 / i
+        # import ipdb; ipdb.set_trace()
+        try:
+            sph_fit_c, sph_fit_r, sph_fit_err = trimesh.nsphere.fit_nsphere(
+                mesh_points.loc[:, "x":"z"][mask_sph]
+            )
+        except (RuntimeWarning, TypeError):
+            pass
+        except Exception as inst:
+            print(type(inst))
+
     # align mesh and sphere in xy plane, so that origin is colinear with c_sphere
     trans_matrix_mesh = np.array(
         [[1, 0, 0, -sph_fit_c[0]], [0, 1, 0, -sph_fit_c[1]], [0, 0, 1, 0], [0, 0, 0, 1]]
