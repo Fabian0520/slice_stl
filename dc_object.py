@@ -5,6 +5,9 @@ from dataclasses import dataclass, field
 class DataCraterAnalysis:
     import pandas as pd
 
+    project_name: str = field(
+        default="", metadata={"description": "Name of the project"}
+    )
     name: str = field(
         default="", metadata={"description": "Name of the original STL file"}
     )

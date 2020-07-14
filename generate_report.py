@@ -4,9 +4,10 @@ import csv
 import pathlib
 
 import numpy as np
+import pdfkit
 from jinja2 import Environment, FileSystemLoader
 
-import pdfkit
+wkhtmltopdf_options = {"enable-local-file-access": None}
 
 
 def volume_crater(h, r):
@@ -45,6 +46,7 @@ def generate_report(crater_analysis_list):
 
     for scan in crater_analysis_list:
         cs_image = list()
+        project_name = scan.project_name
         name = scan.name
         contour_image = ""
         all_names.append(name)  # für all plots
@@ -107,9 +109,16 @@ def generate_report(crater_analysis_list):
 
     css_path = path / "templates" / "style.css"
     output = template.render(content=single_plots, image_all=image_all[0].resolve())
-    pdfkit.from_string(output, out_dir.joinpath("report.pdf"), css=css_path)
+    pdfkit.from_string(
+        output,
+        out_dir.joinpath(f"{project_name}_report.pdf"),
+        css=css_path,
+        options=wkhtmltopdf_options
+    )
     # write report-data to csv file:
-    with open(f"{out_dir}/report.csv", "w", encoding="utf8", newline="") as output_file:
-        fc = csv.DictWriter(output_file, fieldnames=csv_report_data[0].keys(), )
+    with open(
+        f"{out_dir}/{project_name}_report.csv", "w", encoding="utf8", newline=""
+    ) as output_file:
+        fc = csv.DictWriter(output_file, fieldnames=csv_report_data[0].keys(),)
         fc.writeheader()
         fc.writerows(csv_report_data)

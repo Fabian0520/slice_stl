@@ -230,6 +230,7 @@ def read_pkl():
 
 
 if __name__ == "__main__":
+    project_name = input("Bitte Projektname eingeben: ")
     path = pathlib.Path.cwd()
     in_dir = path.joinpath("input")
     out_dir = path.joinpath("output")
@@ -247,6 +248,7 @@ if __name__ == "__main__":
         mesh, mesh_points, fit_parameters = plane_fit.prepare_and_fit(str(file))
         # Mesh export (stl)
         mesh.export(out_dir.joinpath(f"{mesh_name}_transformed.stl"))
+        crater_analysis.project_name = project_name
         crater_analysis.name = mesh_name
         crater_analysis.points = mesh_points
         crater_analysis.fit = fit_parameters
